@@ -16,6 +16,7 @@ from modules.profile import *
 from config import TOKEN, BOT_NAME
 
 
+
 menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
@@ -23,6 +24,7 @@ menu = [
     ["⚙️ تنظیمات", "📜 قوانین"],
     ["🆘 پشتیبانی"]
 ]
+
 
 
 async def start(update: Update, context):
@@ -33,6 +35,7 @@ async def start(update: Update, context):
         menu,
         resize_keyboard=True
     )
+
 
     await update.message.reply_text(
         f"{BOT_NAME}\n\n"
@@ -59,16 +62,17 @@ async def profile(update, context):
 
     info = get_user(user)
 
+
     await update.message.reply_text(
         "👤 پروفایل\n\n"
-        f"🧑 نام: {info['name']}\n"
-        f"⭐ سطح: {info['level']}\n"
-        f"🪙 سکه: {info['coins']}"
+        f"نام: {info['name']}\n"
+        f"سطح: {info['level']}\n"
+        f"سکه: {info['coins']}"
     )
 
 
 
-async def menu_handler(update: Update, context):
+async def menu_handler(update, context):
 
     text = update.message.text
 
@@ -111,6 +115,7 @@ async def menu_handler(update: Update, context):
 
 
     elif text == "👤 پروفایل":
+
         await profile(update, context)
 
 
@@ -131,8 +136,8 @@ async def menu_handler(update: Update, context):
     elif text == "🛡 مدیریت":
 
         await update.message.reply_text(
-            "🛡 مدیریت گروه:\n\n"
-            "با ریپلای:\n"
+            "🛡 مدیریت:\n\n"
+            "ریپلای کن:\n"
             "اخطار\n"
             "بن\n"
             "کیک\n"
@@ -148,7 +153,8 @@ async def menu_handler(update: Update, context):
             "قفل فحش\n"
             "حذف قفل فحش\n"
             "قفل کلمات\n"
-            "حذف قفل کلمات"
+            "حذف قفل کلمات\n"
+            "قفل لینک"
         )
 
 
@@ -172,6 +178,8 @@ async def menu_handler(update: Update, context):
 
 
 
+
+
 app = Application.builder().token(TOKEN).build()
 
 
@@ -180,11 +188,9 @@ app.add_handler(
     CommandHandler("start", start)
 )
 
-
 app.add_handler(
     CommandHandler("help", help_cmd)
 )
-
 
 app.add_handler(
     CommandHandler("profile", profile)
@@ -192,7 +198,7 @@ app.add_handler(
 
 
 
-# مدیریت گروه
+# مدیریت
 
 app.add_handler(
     MessageHandler(filters.Regex("^اخطار$"), warn)
@@ -212,13 +218,54 @@ app.add_handler(
 
 
 
-# منوی اصلی
+# دستورهای قفل
+
+app.add_handler(
+    MessageHandler(filters.Regex("^قفل فحش$"), lock_bad)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^قفل کلمات$"), lock_words)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^حذف قفل کلمات$"), unlock_words)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^قفل لینک$"), lock_links)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^حذف قفل لینک$"), unlock_links)
+)
+
+
+
+# چک قفل روی پیام‌های عادی
+
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        check_locks
+    ),
+    group=1
+)
+
+
+
+# منو
 
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         menu_handler
-    )
+    ),
+    group=2
 )
 
 
