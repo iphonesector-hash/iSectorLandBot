@@ -11,26 +11,22 @@ def load():
     if not os.path.exists(FILE):
         return {}
 
-    with open(FILE, "r", encoding="utf-8") as f:
+    with open(FILE,"r") as f:
         return json.load(f)
 
 
 
 def save(data):
 
-    with open(FILE, "w", encoding="utf-8") as f:
-        json.dump(
-            data,
-            f,
-            ensure_ascii=False,
-            indent=4
-        )
+    with open(FILE,"w") as f:
+        json.dump(data,f,indent=4)
 
 
 
 def get_chat(chat_id):
 
     data = load()
+
     cid = str(chat_id)
 
 
@@ -40,8 +36,12 @@ def get_chat(chat_id):
             "bad_words": False,
             "words": False,
             "links": False,
-            "list": [],
-            "bad_list": []
+            "forward": False,
+            "username": False,
+            "photo": False,
+            "video": False,
+            "file": False,
+            "sticker": False
         }
 
         save(data)
@@ -51,308 +51,153 @@ def get_chat(chat_id):
 
 
 
-def save_chat(chat_id, cfg):
+async def toggle(update, key, status):
 
-    data = load()
+    chat = update.effective_chat
 
-    data[str(chat_id)] = cfg
+    data = get_chat(chat.id)
 
-    save(data)
+    data[key] = status
+
+    all_data = load()
+
+    all_data[str(chat.id)] = data
+
+    save(all_data)
 
 
-
-# قفل فحش
-
-async def lock_bad(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["bad_words"] = True
-
-    save_chat(update.effective_chat.id, cfg)
 
     await update.message.reply_text(
-        "🔒 قفل فحش فعال شد"
+        "🔒 فعال شد" if status else "🔓 خاموش شد"
     )
 
 
 
-async def unlock_bad(update, context):
 
-    cfg = get_chat(update.effective_chat.id)
 
-    cfg["bad_words"] = False
+async def lock_link(update,context):
+    await toggle(update,"links",True)
 
-    save_chat(update.effective_chat.id, cfg)
+async def unlock_link(update,context):
+    await toggle(update,"links",False)
 
-    await update.message.reply_text(
-        "🔓 قفل فحش خاموش شد"
-    )
 
 
+async def lock_forward(update,context):
+    await toggle(update,"forward",True)
 
-# افزودن فحش
+async def unlock_forward(update,context):
+    await toggle(update,"forward",False)
 
-async def add_bad(update, context):
 
-    text = update.message.text
 
-    word = text.replace(
-        "افزودن فحش",
-        ""
-    ).strip()
+async def lock_username(update,context):
+    await toggle(update,"username",True)
 
+async def unlock_username(update,context):
+    await toggle(update,"username",False)
 
-    if not word:
-        return
 
 
-    cfg = get_chat(update.effective_chat.id)
+async def lock_photo(update,context):
+    await toggle(update,"photo",True)
 
+async def unlock_photo(update,context):
+    await toggle(update,"photo",False)
 
-    if word not in cfg["bad_list"]:
 
-        cfg["bad_list"].append(word)
 
+async def lock_video(update,context):
+    await toggle(update,"video",True)
 
-    save_chat(update.effective_chat.id, cfg)
+async def unlock_video(update,context):
+    await toggle(update,"video",False)
 
 
-    await update.message.reply_text(
-        f"✅ فحش ذخیره شد:\n{word}"
-    )
 
+async def lock_file(update,context):
+    await toggle(update,"file",True)
 
+async def unlock_file(update,context):
+    await toggle(update,"file",False)
 
-async def remove_bad(update, context):
 
-    text = update.message.text
 
-    word = text.replace(
-        "حذف فحش",
-        ""
-    ).strip()
+async def lock_sticker(update,context):
+    await toggle(update,"sticker",True)
 
+async def unlock_sticker(update,context):
+    await toggle(update,"sticker",False)
 
-    cfg = get_chat(update.effective_chat.id)
 
 
-    if word in cfg["bad_list"]:
 
-        cfg["bad_list"].remove(word)
 
 
-    save_chat(update.effective_chat.id, cfg)
-
-
-    await update.message.reply_text(
-        "🗑 حذف شد"
-    )
-
-
-
-async def bad_list(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-
-    if not cfg["bad_list"]:
-
-        await update.message.reply_text(
-            "📋 لیست فحش خالیه"
-        )
-        return
-
-
-    await update.message.reply_text(
-        "📋 فحش‌ها:\n\n" +
-        "\n".join(cfg["bad_list"])
-    )
-
-
-
-# قفل کلمات
-
-async def lock_words(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["words"] = True
-
-    save_chat(update.effective_chat.id, cfg)
-
-    await update.message.reply_text(
-        "🔒 قفل کلمات فعال شد"
-    )
-
-
-
-async def unlock_words(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["words"] = False
-
-    save_chat(update.effective_chat.id, cfg)
-
-    await update.message.reply_text(
-        "🔓 قفل کلمات خاموش شد"
-    )
-
-
-
-# افزودن کلمه
-
-async def add_word(update, context):
-
-    text = update.message.text
-
-    word = text.replace(
-        "افزودن کلمه",
-        ""
-    ).strip()
-
-
-    if not word:
-        return
-
-
-    cfg = get_chat(update.effective_chat.id)
-
-
-    if word not in cfg["list"]:
-
-        cfg["list"].append(word)
-
-
-    save_chat(update.effective_chat.id, cfg)
-
-
-    await update.message.reply_text(
-        f"✅ ذخیره شد:\n{word}"
-    )
-
-
-
-async def remove_word(update, context):
-
-    text = update.message.text
-
-    word = text.replace(
-        "حذف کلمه",
-        ""
-    ).strip()
-
-
-    cfg = get_chat(update.effective_chat.id)
-
-
-    if word in cfg["list"]:
-
-        cfg["list"].remove(word)
-
-
-    save_chat(update.effective_chat.id, cfg)
-
-
-    await update.message.reply_text(
-        "🗑 حذف شد"
-    )
-
-
-
-async def words_list(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-
-    if not cfg["list"]:
-
-        await update.message.reply_text(
-            "📋 لیست خالی است"
-        )
-        return
-
-
-    await update.message.reply_text(
-        "📋 کلمات:\n\n" +
-        "\n".join(cfg["list"])
-    )
-
-
-
-# لینک
-
-async def lock_links(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["links"] = True
-
-    save_chat(update.effective_chat.id, cfg)
-
-    await update.message.reply_text(
-        "🔒 قفل لینک فعال شد"
-    )
-
-
-
-async def unlock_links(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["links"] = False
-
-    save_chat(update.effective_chat.id, cfg)
-
-    await update.message.reply_text(
-        "🔓 قفل لینک خاموش شد"
-    )
-
-
-
-# بررسی پیام
-
-async def check_locks(update, context):
+async def check_locks(update,context):
 
     if not update.message:
         return
 
-    if not update.message.text:
-        return
 
-
-    text = update.message.text
-
+    msg = update.message
     cfg = get_chat(update.effective_chat.id)
-
-
-
-    if cfg["bad_words"]:
-
-        for w in cfg["bad_list"]:
-
-            if w in text:
-
-                await update.message.delete()
-                return
-
-
-
-    if cfg["words"]:
-
-        for w in cfg["list"]:
-
-            if w in text:
-
-                await update.message.delete()
-                return
 
 
 
     if cfg["links"]:
 
-        if "http://" in text or "https://" in text:
+        text = msg.text or ""
 
-            await update.message.delete()
+        if "http" in text or "t.me" in text:
+
+            await msg.delete()
             return
+
+
+
+    if cfg["username"]:
+
+        if "@" in (msg.text or ""):
+
+            await msg.delete()
+            return
+
+
+
+
+    if cfg["forward"]:
+
+        if msg.forward_date:
+
+            await msg.delete()
+            return
+
+
+
+
+    if cfg["photo"] and msg.photo:
+
+        await msg.delete()
+        return
+
+
+
+    if cfg["video"] and msg.video:
+
+        await msg.delete()
+        return
+
+
+
+    if cfg["file"] and msg.document:
+
+        await msg.delete()
+        return
+
+
+
+    if cfg["sticker"] and msg.sticker:
+
+        await msg.delete()
+        return
