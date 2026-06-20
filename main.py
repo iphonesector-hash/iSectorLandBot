@@ -7,6 +7,7 @@ from telegram.ext import (
     filters
 )
 
+from modules.fun import *
 from config import TOKEN, BOT_NAME
 
 
@@ -46,14 +47,61 @@ async def menu_handler(update: Update, context):
 
     text = update.message.text
 
+
     if text == "🎮 سرگرمی":
         await update.message.reply_text(
             "🎮 سرگرمی‌ها:\n\n"
             "😂 جوک\n"
             "🧠 چیستان\n"
             "🎲 تاس\n"
-            "🎰 شانس"
+            "🪙 شیر یا خط\n"
+            "📌 فکت\n"
+            "💪 انگیزشی\n"
+            "💬 تکست"
         )
+
+
+    elif text == "😂 جوک":
+        await update.message.reply_text(
+            get_joke()
+        )
+
+
+    elif text == "🧠 چیستان":
+        await update.message.reply_text(
+            riddle()
+        )
+
+
+    elif text == "🎲 تاس":
+        await update.message.reply_text(
+            dice()
+        )
+
+
+    elif text == "🪙 شیر یا خط":
+        await update.message.reply_text(
+            coin()
+        )
+
+
+    elif text == "📌 فکت":
+        await update.message.reply_text(
+            get_fact()
+        )
+
+
+    elif text == "💪 انگیزشی":
+        await update.message.reply_text(
+            get_motive()
+        )
+
+
+    elif text == "💬 تکست":
+        await update.message.reply_text(
+            get_text()
+        )
+
 
     elif text == "🛠 کاربردی":
         await update.message.reply_text(
@@ -65,6 +113,7 @@ async def menu_handler(update: Update, context):
             "🥇 طلا"
         )
 
+
     elif text == "🛡 مدیریت":
         await update.message.reply_text(
             "🛡 مدیریت گروه:\n\n"
@@ -74,6 +123,7 @@ async def menu_handler(update: Update, context):
             "قفل‌ها"
         )
 
+
     elif text == "📜 قوانین":
         await update.message.reply_text(
             "📜 قوانین:\n\n"
@@ -82,15 +132,18 @@ async def menu_handler(update: Update, context):
             "بدون تبلیغ"
         )
 
+
     elif text == "🆘 پشتیبانی":
         await update.message.reply_text(
             "🆘 پشتیبانی iSectorLand"
         )
 
+
     else:
         await update.message.reply_text(
             "این بخش به زودی کامل میشه 🔥"
         )
+
 
 
 app = Application.builder().token(TOKEN).build()
@@ -110,5 +163,6 @@ app.add_handler(
 
 
 print("🌻 iSectorLand Started")
+
 
 app.run_polling()
