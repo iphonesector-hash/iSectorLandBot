@@ -1,4 +1,4 @@
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -25,11 +25,16 @@ menu = [
 
 
 
-def clean(text):
+def clean_text(text):
+
+    if not text:
+        return ""
 
     emojis = [
         "🎮","🛠","🛡","🔒",
-        "👤","📜","⚙️","🆘"
+        "👤","📜","⚙️","🆘",
+        "😂","🧠","🎲","🪙",
+        "📌","💪","💬"
     ]
 
     for e in emojis:
@@ -65,8 +70,9 @@ async def menu_handler(update, context):
         return
 
 
-    text = clean(update.message.text)
-
+    text = clean_text(
+        update.message.text
+    )
 
 
     if text == "سرگرمی":
@@ -76,7 +82,8 @@ async def menu_handler(update, context):
             "😂 جوک\n"
             "🧠 چیستان\n"
             "🎲 تاس\n"
-            "🪙 شیر یا خط"
+            "🪙 شیر یا خط\n"
+            "📌 فکت"
         )
 
 
@@ -107,6 +114,12 @@ async def menu_handler(update, context):
             coin()
         )
 
+
+    elif text == "فکت":
+
+        await update.message.reply_text(
+            get_fact()
+        )
 
 
     elif text == "پروفایل":
@@ -142,9 +155,10 @@ async def menu_handler(update, context):
     elif text == "قوانین":
 
         await update.message.reply_text(
-            "📜 قوانین فعال است"
+            "📜 قوانین:\n"
+            "احترام\n"
+            "بدون اسپم"
         )
-
 
 
     elif text == "پشتیبانی":
@@ -155,46 +169,55 @@ async def menu_handler(update, context):
 
 
 
+
+
 app = Application.builder().token(TOKEN).build()
 
 
 
 app.add_handler(
-    CommandHandler("start", start)
+    CommandHandler(
+        "start",
+        start
+    )
 )
+
 
 app.add_handler(
-    CommandHandler("profile", profile_cmd)
+    CommandHandler(
+        "profile",
+        profile_cmd
+    )
 )
 
 
 
-# مدیریت بدون حساسیت به ایموجی
+# مدیریت
 
 app.add_handler(
     MessageHandler(
-        filters.Regex("^(🚫)?بن$"),
+        filters.Regex("^بن$"),
         ban
     )
 )
 
 app.add_handler(
     MessageHandler(
-        filters.Regex("^(👢)?کیک$"),
+        filters.Regex("^کیک$"),
         kick
     )
 )
 
 app.add_handler(
     MessageHandler(
-        filters.Regex("^(🔇)?سکوت$"),
+        filters.Regex("^سکوت$"),
         mute
     )
 )
 
 app.add_handler(
     MessageHandler(
-        filters.Regex("^(⚠️)?اخطار$"),
+        filters.Regex("^اخطار$"),
         warn
     )
 )
@@ -205,18 +228,73 @@ app.add_handler(
 
 app.add_handler(
     MessageHandler(
-        filters.TEXT & ~filters.COMMAND,
-        check_locks
+        filters.Regex("^قفل فحش$"),
+        lock_bad
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^قفل کلمات$"),
+        lock_words
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^افزودن کلمه (.+)$"),
+        add_word
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^لیست کلمات$"),
+        words_list
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^افزودن فحش (.+)$"),
+        add_bad
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^لیست فحش$"),
+        bad_list
     )
 )
 
 
 
+# اول منو
+
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         menu_handler
-    )
+    ),
+    group=1
+)
+
+
+
+# آخر قفل
+
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        check_locks
+    ),
+    group=2
 )
 
 
