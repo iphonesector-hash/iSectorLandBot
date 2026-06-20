@@ -30,12 +30,11 @@ def clean(text):
     if not text:
         return ""
 
-    for x in [
+    for e in [
         "🎮","🛠","🛡","🔒",
-        "👤","📜","⚙️","🆘",
-        "😂","🧠","🎲","🪙"
+        "👤","📜","⚙️","🆘"
     ]:
-        text = text.replace(x,"")
+        text = text.replace(e, "")
 
     return text.strip()
 
@@ -56,75 +55,66 @@ async def start(update, context):
 
 
 async def profile_cmd(update, context):
+
     await profile(update, context)
 
 
 
-
-
-# ---------- قفل‌ها ----------
+# تست و دستورات قفل
 
 async def lock_handler(update, context):
 
     text = update.message.text.strip()
 
-
     if text == "قفل لینک":
-        await lock_link(update,context)
+        await lock_link(update, context)
 
     elif text == "حذف قفل لینک":
-        await unlock_link(update,context)
-
+        await unlock_link(update, context)
 
     elif text == "قفل فوروارد":
-        await lock_forward(update,context)
+        await lock_forward(update, context)
 
     elif text == "حذف قفل فوروارد":
-        await unlock_forward(update,context)
-
+        await unlock_forward(update, context)
 
     elif text == "قفل یوزرنیم":
-        await lock_username(update,context)
+        await lock_username(update, context)
 
     elif text == "حذف قفل یوزرنیم":
-        await unlock_username(update,context)
-
+        await unlock_username(update, context)
 
     elif text == "قفل عکس":
-        await lock_photo(update,context)
+        await lock_photo(update, context)
 
     elif text == "حذف قفل عکس":
-        await unlock_photo(update,context)
-
+        await unlock_photo(update, context)
 
     elif text == "قفل ویدیو":
-        await lock_video(update,context)
+        await lock_video(update, context)
 
     elif text == "حذف قفل ویدیو":
-        await unlock_video(update,context)
-
+        await unlock_video(update, context)
 
     elif text == "قفل فایل":
-        await lock_file(update,context)
+        await lock_file(update, context)
 
     elif text == "حذف قفل فایل":
-        await unlock_file(update,context)
-
+        await unlock_file(update, context)
 
     elif text == "قفل استیکر":
-        await lock_sticker(update,context)
+        await lock_sticker(update, context)
 
     elif text == "حذف قفل استیکر":
-        await unlock_sticker(update,context)
+        await unlock_sticker(update, context)
 
 
 
 
 
-async def menu_handler(update,context):
+async def menu_handler(update, context):
 
     text = clean(update.message.text)
-
 
 
     if text == "سرگرمی":
@@ -133,41 +123,35 @@ async def menu_handler(update,context):
             "🎮 سرگرمی:\n\n"
             "😂 جوک\n"
             "🧠 چیستان\n"
-            "🎲 تاس\n"
-            "🪙 شیر یا خط"
+            "🎲 تاس"
         )
 
 
     elif text == "جوک":
-        await update.message.reply_text(get_joke())
+
+        await update.message.reply_text(
+            get_joke()
+        )
 
 
     elif text == "چیستان":
-        await update.message.reply_text(riddle())
+
+        await update.message.reply_text(
+            riddle()
+        )
 
 
     elif text == "تاس":
-        await update.message.reply_text(dice())
 
-
-    elif text == "شیر یا خط":
-        await update.message.reply_text(coin())
+        await update.message.reply_text(
+            dice()
+        )
 
 
     elif text == "پروفایل":
-        await profile_cmd(update,context)
 
+        await profile_cmd(update, context)
 
-    elif text == "مدیریت":
-
-        await update.message.reply_text(
-            "🛡 مدیریت:\n\n"
-            "اخطار\n"
-            "پاک کردن اخطار\n"
-            "بن\n"
-            "کیک\n"
-            "سکوت"
-        )
 
 
     elif text == "قفل‌ها":
@@ -179,15 +163,7 @@ async def menu_handler(update,context):
             "قفل فوروارد\n"
             "حذف قفل فوروارد\n"
             "قفل یوزرنیم\n"
-            "حذف قفل یوزرنیم\n"
-            "قفل عکس\n"
-            "حذف قفل عکس\n"
-            "قفل ویدیو\n"
-            "حذف قفل ویدیو\n"
-            "قفل فایل\n"
-            "حذف قفل فایل\n"
-            "قفل استیکر\n"
-            "حذف قفل استیکر"
+            "حذف قفل یوزرنیم"
         )
 
 
@@ -198,16 +174,23 @@ app = Application.builder().token(TOKEN).build()
 
 
 
-app.add_handler(CommandHandler("start",start))
-app.add_handler(CommandHandler("profile",profile_cmd))
+app.add_handler(
+    CommandHandler("start", start)
+)
+
+app.add_handler(
+    CommandHandler("profile", profile_cmd)
+)
 
 
 
-# قفل‌ها اول از همه
+# اول قفل‌ها
 
 app.add_handler(
     MessageHandler(
-        filters.TEXT,
+        filters.Regex(
+            "^(قفل لینک|حذف قفل لینک|قفل فوروارد|حذف قفل فوروارد|قفل یوزرنیم|حذف قفل یوزرنیم|قفل عکس|حذف قفل عکس|قفل ویدیو|حذف قفل ویدیو|قفل فایل|حذف قفل فایل|قفل استیکر|حذف قفل استیکر)$"
+        ),
         lock_handler
     ),
     group=0
@@ -215,24 +198,35 @@ app.add_handler(
 
 
 
-# مدیریت
+# تست اینکه پیام می‌رسه
 
-app.add_handler(MessageHandler(filters.Regex("^اخطار$"),warn))
-app.add_handler(MessageHandler(filters.Regex("^(پاک کردن اخطار|حذف اخطار)$"),clear_warning))
-app.add_handler(MessageHandler(filters.Regex("^بن$"),ban))
-app.add_handler(MessageHandler(filters.Regex("^کیک$"),kick))
-app.add_handler(MessageHandler(filters.Regex("^سکوت$"),mute))
+async def test_message(update, context):
+
+    if update.message.text == "تست":
+
+        await update.message.reply_text(
+            "ربات پیام گرفت"
+        )
+
+
+app.add_handler(
+    MessageHandler(
+        filters.TEXT,
+        test_message
+    ),
+    group=1
+)
 
 
 
-# بررسی قفل محتوا
+# قفل محتوا
 
 app.add_handler(
     MessageHandler(
         filters.ALL & ~filters.COMMAND,
         check_locks
     ),
-    group=1
+    group=2
 )
 
 
@@ -244,7 +238,7 @@ app.add_handler(
         filters.TEXT,
         menu_handler
     ),
-    group=2
+    group=3
 )
 
 
