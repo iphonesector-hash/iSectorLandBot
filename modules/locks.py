@@ -12,7 +12,7 @@ def load():
         return {}
 
     with open(FILE, "r") as f:
-        return json.load()
+        return json.load(f)
 
 
 
@@ -58,6 +58,7 @@ async def is_admin(update, context):
     )
 
     for admin in admins:
+
         if admin.user.id == update.effective_user.id:
             return True
 
@@ -65,10 +66,10 @@ async def is_admin(update, context):
 
 
 
+
+
 async def toggle(update, context, key, value):
 
-    # تست رسیدن دستور
-    await update.message.reply_text("✅ قفل رسید")
 
     if not await is_admin(update, context):
 
@@ -79,18 +80,25 @@ async def toggle(update, context, key, value):
         return
 
 
+
     chat_id = update.effective_chat.id
 
+
     data = get_chat(chat_id)
+
 
     data[key] = value
 
 
+
     all_data = load()
+
 
     all_data[str(chat_id)] = data
 
+
     save(all_data)
+
 
 
     await update.message.reply_text(
@@ -103,72 +111,85 @@ async def toggle(update, context, key, value):
 
 
 
-async def lock_link(update,context):
-    await toggle(update,context,"links",True)
+
+async def lock_link(update, context):
+    await toggle(update, context, "links", True)
 
 
-async def unlock_link(update,context):
-    await toggle(update,context,"links",False)
-
-
-
-async def lock_forward(update,context):
-    await toggle(update,context,"forward",True)
-
-
-async def unlock_forward(update,context):
-    await toggle(update,context,"forward",False)
-
-
-
-async def lock_username(update,context):
-    await toggle(update,context,"username",True)
-
-
-async def unlock_username(update,context):
-    await toggle(update,context,"username",False)
-
-
-
-async def lock_photo(update,context):
-    await toggle(update,context,"photo",True)
-
-
-async def unlock_photo(update,context):
-    await toggle(update,context,"photo",False)
-
-
-
-async def lock_video(update,context):
-    await toggle(update,context,"video",True)
-
-
-async def unlock_video(update,context):
-    await toggle(update,context,"video",False)
-
-
-
-async def lock_file(update,context):
-    await toggle(update,context,"file",True)
-
-
-async def unlock_file(update,context):
-    await toggle(update,context,"file",False)
-
-
-
-async def lock_sticker(update,context):
-    await toggle(update,context,"sticker",True)
-
-
-async def unlock_sticker(update,context):
-    await toggle(update,context,"sticker",False)
+async def unlock_link(update, context):
+    await toggle(update, context, "links", False)
 
 
 
 
 
-async def check_locks(update,context):
+async def lock_forward(update, context):
+    await toggle(update, context, "forward", True)
+
+
+async def unlock_forward(update, context):
+    await toggle(update, context, "forward", False)
+
+
+
+
+
+async def lock_username(update, context):
+    await toggle(update, context, "username", True)
+
+
+async def unlock_username(update, context):
+    await toggle(update, context, "username", False)
+
+
+
+
+
+async def lock_photo(update, context):
+    await toggle(update, context, "photo", True)
+
+
+async def unlock_photo(update, context):
+    await toggle(update, context, "photo", False)
+
+
+
+
+
+async def lock_video(update, context):
+    await toggle(update, context, "video", True)
+
+
+async def unlock_video(update, context):
+    await toggle(update, context, "video", False)
+
+
+
+
+
+async def lock_file(update, context):
+    await toggle(update, context, "file", True)
+
+
+async def unlock_file(update, context):
+    await toggle(update, context, "file", False)
+
+
+
+
+
+async def lock_sticker(update, context):
+    await toggle(update, context, "sticker", True)
+
+
+async def unlock_sticker(update, context):
+    await toggle(update, context, "sticker", False)
+
+
+
+
+
+async def check_locks(update, context):
 
     if not update.message:
         return
@@ -176,9 +197,11 @@ async def check_locks(update,context):
 
     msg = update.message
 
+
     cfg = get_chat(
         update.effective_chat.id
     )
+
 
 
     if cfg.get("links"):
