@@ -1,72 +1,134 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from modules.warnings import (
+    add_warn,
+    clear_warn,
+    get_warn
+)
+
+
 
 async def is_admin(update, context):
 
-    user_id = update.effective_user.id
-    chat_id = update.effective_chat.id
-
-
-    admins = await context.bot.get_chat_administrators(chat_id)
-
+    admins = await context.bot.get_chat_administrators(
+        update.effective_chat.id
+    )
 
     for admin in admins:
-
-        if admin.user.id == user_id:
+        if admin.user.id == update.effective_user.id:
             return True
-
 
     return False
 
 
 
-async def warn(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def warn(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
 
     if not await is_admin(update, context):
-        await update.message.reply_text("⛔ فقط ادمین‌ها")
+        await update.message.reply_text(
+            "⛔ فقط ادمین‌ها"
+        )
         return
+
 
 
     if not update.message.reply_to_message:
+
         await update.message.reply_text(
             "⚠️ روی پیام کاربر ریپلای کن"
         )
+
         return
+
 
 
     user = update.message.reply_to_message.from_user
 
 
-    await update.message.reply_text(
-        f"⚠️ اخطار برای {user.first_name} ثبت شد"
+    count = add_warn(
+        user.id
     )
 
 
 
-async def clear_warn(update, context):
+    if count >= 3:
+
+
+        await context.bot.ban_chat_member(
+            update.effective_chat.id,
+            user.id
+        )
+
+
+        await update.message.reply_text(
+            f"🚫 {user.first_name} به دلیل ۳ اخطار بن شد"
+        )
+
+
+        clear_warn(
+            user.id
+        )
+
+        return
+
+
+
+    await update.message.reply_text(
+        f"⚠️ اخطار ثبت شد\n\n"
+        f"👤 {user.first_name}\n"
+        f"تعداد اخطار: {count}/3"
+    )
+
+
+
+
+
+async def clear_warning(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
+
 
     if not await is_admin(update, context):
         return
 
 
+
+    if not update.message.reply_to_message:
+        return
+
+
+
+    user = update.message.reply_to_message.from_user
+
+
+    clear_warn(
+        user.id
+    )
+
+
     await update.message.reply_text(
-        "🧹 اخطار پاک شد"
+        "🧹 اخطارهای کاربر پاک شد"
     )
 
 
 
-async def ban(update, context):
+
+
+async def ban(
+    update,
+    context
+):
 
     if not await is_admin(update, context):
-        await update.message.reply_text("⛔ فقط ادمین‌ها")
         return
 
 
     if not update.message.reply_to_message:
-        await update.message.reply_text(
-            "🚫 روی پیام کاربر ریپلای کن"
-        )
         return
 
 
@@ -85,7 +147,12 @@ async def ban(update, context):
 
 
 
-async def kick(update, context):
+
+
+async def kick(
+    update,
+    context
+):
 
     if not await is_admin(update, context):
         return
@@ -103,6 +170,7 @@ async def kick(update, context):
         user.id
     )
 
+
     await context.bot.unban_chat_member(
         update.effective_chat.id,
         user.id
@@ -115,7 +183,12 @@ async def kick(update, context):
 
 
 
-async def mute(update, context):
+
+
+async def mute(
+    update,
+    context
+):
 
     if not await is_admin(update, context):
         return
@@ -126,6 +199,7 @@ async def mute(update, context):
 
 
     user = update.message.reply_to_message.from_user
+
 
 
     await context.bot.restrict_chat_member(
