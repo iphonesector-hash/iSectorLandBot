@@ -1,6 +1,3 @@
-import os
-import random
-
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -10,130 +7,108 @@ from telegram.ext import (
     filters
 )
 
-TOKEN = os.getenv("BOT_TOKEN")
+from config import TOKEN, BOT_NAME
 
 
 menu = [
-    ["🎮 سرگرمی", "😂 جوک"],
-    ["🔮 فال", "🧠 چیستان"],
-    ["🎲 بازی", "📜 قوانین"],
-    ["🆘 پشتیبانی", "⚙️ تنظیمات"]
+    ["🎮 سرگرمی", "🛠 کاربردی"],
+    ["🛡 مدیریت", "👤 پروفایل"],
+    ["📜 قوانین", "⚙️ تنظیمات"],
+    ["🆘 پشتیبانی"]
 ]
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     keyboard = ReplyKeyboardMarkup(
         menu,
         resize_keyboard=True
     )
 
     await update.message.reply_text(
-        "🌻 به iSectorLand خوش اومدی 🤖\n\n"
-        "یک گزینه انتخاب کن:",
+        f"{BOT_NAME}\n\n"
+        "خوش اومدی 🌻\n"
+        "یکی از گزینه‌ها رو انتخاب کن 👇",
         reply_markup=keyboard
     )
 
 
-async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def help_cmd(update: Update, context):
+
     await update.message.reply_text(
-        "📌 دستورات:\n\n"
+        "📌 راهنما\n\n"
         "/start شروع\n"
-        "/help راهنما\n\n"
-        "یا از دکمه‌ها استفاده کن 👇"
+        "/help راهنما"
     )
 
 
-async def joke(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    jokes = [
-        "😂 چرا کامپیوتر رفت دکتر؟ چون ویروس گرفته بود!",
-        "🤣 اینترنت قطع شد، مودم رفت افسردگی گرفت!",
-        "😄 برنامه نویس چرا قهوه میخوره؟ چون باگ داره!"
-    ]
-
-    await update.message.reply_text(random.choice(jokes))
-
-
-async def fal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🔮 فال امروز:\n"
-        "یه خبر خوب نزدیکته ✨"
-    )
-
-
-async def riddle(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🧠 چیستان:\n\n"
-        "چیزی که دندان دارد ولی غذا نمی‌خورد؟"
-        "\n\nجواب: شانه 😄"
-    )
-
-
-async def game(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    number = random.randint(1,5)
-
-    await update.message.reply_text(
-        f"🎲 عدد شانس امروزت: {number}"
-    )
-
-
-async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "📜 قوانین:\n\n"
-        "1️⃣ احترام به اعضا\n"
-        "2️⃣ اسپم ممنوع\n"
-        "3️⃣ تبلیغ بدون اجازه ممنوع"
-    )
-
-
-async def support(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🆘 پشتیبانی:\n"
-        "برای کمک با ادمین تماس بگیر"
-    )
-
-
-async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def menu_handler(update: Update, context):
 
     text = update.message.text
 
-    if text == "😂 جوک":
-        await joke(update, context)
-
-    elif text == "🔮 فال":
-        await fal(update, context)
-
-    elif text == "🧠 چیستان":
-        await riddle(update, context)
-
-    elif text == "🎲 بازی":
-        await game(update, context)
-
-    elif text == "📜 قوانین":
-        await rules(update, context)
-
-    elif text == "🆘 پشتیبانی":
-        await support(update, context)
-
-    elif text == "🎮 سرگرمی":
+    if text == "🎮 سرگرمی":
         await update.message.reply_text(
-            "🎮 بخش سرگرمی آماده است 😎"
+            "🎮 سرگرمی‌ها:\n\n"
+            "😂 جوک\n"
+            "🧠 چیستان\n"
+            "🎲 تاس\n"
+            "🎰 شانس"
         )
 
-    elif text == "⚙️ تنظیمات":
+    elif text == "🛠 کاربردی":
         await update.message.reply_text(
-            "⚙️ تنظیمات بزودی اضافه می‌شود"
+            "🛠 ابزارها:\n\n"
+            "📅 تاریخ\n"
+            "⏰ ساعت\n"
+            "🌦 هواشناسی\n"
+            "💵 ارز\n"
+            "🥇 طلا"
+        )
+
+    elif text == "🛡 مدیریت":
+        await update.message.reply_text(
+            "🛡 مدیریت گروه:\n\n"
+            "بن\n"
+            "اخطار\n"
+            "سکوت\n"
+            "قفل‌ها"
+        )
+
+    elif text == "📜 قوانین":
+        await update.message.reply_text(
+            "📜 قوانین:\n\n"
+            "احترام به اعضا\n"
+            "بدون اسپم\n"
+            "بدون تبلیغ"
+        )
+
+    elif text == "🆘 پشتیبانی":
+        await update.message.reply_text(
+            "🆘 پشتیبانی iSectorLand"
+        )
+
+    else:
+        await update.message.reply_text(
+            "این بخش به زودی کامل میشه 🔥"
         )
 
 
 app = Application.builder().token(TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("help", help_cmd))
 
 app.add_handler(
-    MessageHandler(filters.TEXT, text_handler)
+    CommandHandler("start", start)
 )
 
-print("iSectorLand Bot Started")
+app.add_handler(
+    CommandHandler("help", help_cmd)
+)
+
+app.add_handler(
+    MessageHandler(filters.TEXT, menu_handler)
+)
+
+
+print("🌻 iSectorLand Started")
 
 app.run_polling()
