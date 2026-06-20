@@ -15,12 +15,14 @@ from modules.profile import *
 from config import TOKEN, BOT_NAME
 
 
+
 menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
     ["👤 پروفایل", "📜 قوانین"],
     ["⚙️ تنظیمات", "🆘 پشتیبانی"]
 ]
+
 
 
 def clean(text):
@@ -38,6 +40,8 @@ def clean(text):
 
 
 
+
+
 async def start(update, context):
 
     get_user(update.effective_user)
@@ -52,12 +56,16 @@ async def start(update, context):
 
 
 
+
 async def profile_cmd(update, context):
+
     await profile(update, context)
 
 
 
 
+
+# ---------- قفل‌ها ----------
 
 async def lock_handler(update, context):
 
@@ -96,6 +104,7 @@ async def lock_handler(update, context):
 
 
 
+
 async def menu_handler(update, context):
 
     text = clean(update.message.text)
@@ -113,23 +122,31 @@ async def menu_handler(update, context):
 
 
     elif text == "جوک":
-        await update.message.reply_text(get_joke())
+
+        await update.message.reply_text(
+            get_joke()
+        )
 
 
     elif text == "چیستان":
-        await update.message.reply_text(riddle())
+
+        await update.message.reply_text(
+            riddle()
+        )
 
 
     elif text == "تاس":
-        await update.message.reply_text(dice())
+
+        await update.message.reply_text(
+            dice()
+        )
 
 
 
     elif text == "مدیریت":
 
         await update.message.reply_text(
-            "🛡 مدیریت:\n\n"
-            "بخش مدیریت آماده است"
+            "🛡 مدیریت"
         )
 
 
@@ -137,8 +154,7 @@ async def menu_handler(update, context):
     elif text == "کاربردی":
 
         await update.message.reply_text(
-            "🛠 کاربردی:\n\n"
-            "بخش کاربردی آماده است"
+            "🛠 کاربردی"
         )
 
 
@@ -168,6 +184,7 @@ async def menu_handler(update, context):
     elif text == "پروفایل":
 
         await profile_cmd(update, context)
+
 
 
 
@@ -203,6 +220,8 @@ async def menu_handler(update, context):
 
 
 
+
+
 app = Application.builder().token(TOKEN).build()
 
 
@@ -218,7 +237,9 @@ app.add_handler(
 
 
 
-# قفل‌ها
+
+
+# قفل دستورات
 
 app.add_handler(
     MessageHandler(
@@ -232,23 +253,33 @@ app.add_handler(
 
 
 
-app.add_handler(
-    MessageHandler(
-        filters.ALL & ~filters.COMMAND,
-        check_locks
-    ),
-    group=1
-)
 
 
+# منوها قبل از چک قفل
 
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         menu_handler
     ),
+    group=1
+)
+
+
+
+
+
+# بررسی قفل محتوا آخر
+
+app.add_handler(
+    MessageHandler(
+        filters.ALL & ~filters.COMMAND,
+        check_locks
+    ),
     group=2
 )
+
+
 
 
 
