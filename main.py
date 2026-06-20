@@ -27,7 +27,7 @@ menu = [
 
 
 
-async def start(update: Update, context):
+async def start(update, context):
 
     get_user(update.effective_user)
 
@@ -97,6 +97,7 @@ async def menu_handler(update, context):
         await profile_cmd(update, context)
 
 
+
     elif text == "🛡 مدیریت":
         await update.message.reply_text(
             "🛡 مدیریت:\n\n"
@@ -107,6 +108,7 @@ async def menu_handler(update, context):
         )
 
 
+
     elif text == "🔒 قفل‌ها":
         await update.message.reply_text(
             "🔒 قفل‌ها:\n\n"
@@ -115,20 +117,29 @@ async def menu_handler(update, context):
             "قفل کلمات\n"
             "حذف قفل کلمات\n"
             "قفل لینک\n"
-            "حذف قفل لینک"
+            "حذف قفل لینک\n\n"
+            "افزودن کلمه تست\n"
+            "حذف کلمه تست\n"
+            "لیست کلمات"
         )
 
 
+
     elif text == "📜 قوانین":
+
         await update.message.reply_text(
             "📜 قوانین:\nاحترام + بدون اسپم"
         )
 
 
+
     elif text == "🆘 پشتیبانی":
+
         await update.message.reply_text(
             "🆘 پشتیبانی iSectorLand"
         )
+
+
 
 
 
@@ -142,7 +153,7 @@ app.add_handler(CommandHandler("profile", profile_cmd))
 
 
 
-# اول دستورهای قفل
+# قفل‌ها
 
 app.add_handler(MessageHandler(filters.Regex("^قفل فحش$"), lock_bad))
 app.add_handler(MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad))
@@ -155,7 +166,32 @@ app.add_handler(MessageHandler(filters.Regex("^حذف قفل لینک$"), unlock
 
 
 
-# مدیریت
+# کلمات سفارشی
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^افزودن کلمه (.+)$"),
+        add_word
+    )
+)
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^حذف کلمه (.+)$"),
+        remove_word
+    )
+)
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^لیست کلمات$"),
+        words_list
+    )
+)
+
+
+
+# مدیریت گروه
 
 app.add_handler(MessageHandler(filters.Regex("^اخطار$"), warn))
 app.add_handler(MessageHandler(filters.Regex("^بن$"), ban))
@@ -164,7 +200,7 @@ app.add_handler(MessageHandler(filters.Regex("^سکوت$"), mute))
 
 
 
-# قفل روی پیام های عادی (بعد از دستورات)
+# چک قفل پیام‌ها
 
 app.add_handler(
     MessageHandler(
