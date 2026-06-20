@@ -7,7 +7,13 @@ from telegram.ext import (
 )
 
 from modules.fun import *
-from modules.admin import *
+from modules.admin import (
+    warn,
+    clear_warning,
+    ban,
+    kick,
+    mute
+)
 from modules.locks import *
 from modules.settings import *
 from modules.profile import *
@@ -40,8 +46,6 @@ def clean(text):
 
 
 
-
-
 async def start(update, context):
 
     get_user(update.effective_user)
@@ -57,15 +61,22 @@ async def start(update, context):
 
 
 
+
 async def profile_cmd(update, context):
 
-    await profile(update, context)
+    user = get_user(update.effective_user)
+
+    await update.message.reply_text(
+        f"👤 پروفایل\n\n"
+        f"نام: {user['name']}\n"
+        f"⭐ لول: {user['level']}\n"
+        f"🪙 سکه: {user['coins']}\n"
+        f"VIP: {user['vip']}"
+    )
 
 
 
 
-
-# ---------- قفل‌ها ----------
 
 async def lock_handler(update, context):
 
@@ -117,66 +128,49 @@ async def menu_handler(update, context):
             "🎮 سرگرمی:\n\n"
             "😂 جوک\n"
             "🧠 چیستان\n"
-            "🎲 تاس"
+            "🎲 تاس\n"
+            "🪙 شیر یا خط\n"
+            "📚 فکت\n"
+            "💪 انگیزشی"
         )
 
 
     elif text == "جوک":
-
-        await update.message.reply_text(
-            get_joke()
-        )
+        await update.message.reply_text(get_joke())
 
 
     elif text == "چیستان":
-
-        await update.message.reply_text(
-            riddle()
-        )
+        await update.message.reply_text(riddle())
 
 
     elif text == "تاس":
+        await update.message.reply_text(dice())
 
-        await update.message.reply_text(
-            dice()
-        )
+
+    elif text == "شیر یا خط":
+        await update.message.reply_text(coin())
+
+
+    elif text == "فکت":
+        await update.message.reply_text(get_fact())
+
+
+    elif text == "انگیزشی":
+        await update.message.reply_text(get_motive())
+
 
 
 
     elif text == "مدیریت":
 
         await update.message.reply_text(
-            "🛡 مدیریت"
-        )
-
-
-
-    elif text == "کاربردی":
-
-        await update.message.reply_text(
-            "🛠 کاربردی"
-        )
-
-
-
-    elif text == "قوانین":
-
-        await update.message.reply_text(
-            "📜 قوانین گروه"
-        )
-
-
-
-    elif text == "تنظیمات":
-
-        await settings(update, context)
-
-
-
-    elif text == "پشتیبانی":
-
-        await update.message.reply_text(
-            "🆘 پشتیبانی"
+            "🛡 مدیریت:\n\n"
+            "ریپلای کن و استفاده کن:\n\n"
+            "/warn\n"
+            "/clearwarn\n"
+            "/ban\n"
+            "/kick\n"
+            "/mute"
         )
 
 
@@ -186,6 +180,39 @@ async def menu_handler(update, context):
         await profile_cmd(update, context)
 
 
+
+    elif text == "قوانین":
+
+        await update.message.reply_text(
+            "📜 قوانین:\n\n"
+            "• اسپم ممنوع\n"
+            "• تبلیغ ممنوع\n"
+            "• بی احترامی ممنوع"
+        )
+
+
+
+    elif text == "کاربردی":
+
+        await update.message.reply_text(
+            "🛠 کاربردی فعال شد"
+        )
+
+
+
+    elif text == "تنظیمات":
+
+        await update.message.reply_text(
+            "⚙️ تنظیمات"
+        )
+
+
+
+    elif text == "پشتیبانی":
+
+        await update.message.reply_text(
+            "🆘 پشتیبانی"
+        )
 
 
 
@@ -226,20 +253,17 @@ app = Application.builder().token(TOKEN).build()
 
 
 
-app.add_handler(
-    CommandHandler("start", start)
-)
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("profile", profile_cmd))
 
 
-app.add_handler(
-    CommandHandler("profile", profile_cmd)
-)
+app.add_handler(CommandHandler("warn", warn))
+app.add_handler(CommandHandler("clearwarn", clear_warning))
+app.add_handler(CommandHandler("ban", ban))
+app.add_handler(CommandHandler("kick", kick))
+app.add_handler(CommandHandler("mute", mute))
 
 
-
-
-
-# قفل دستورات
 
 app.add_handler(
     MessageHandler(
@@ -253,10 +277,6 @@ app.add_handler(
 
 
 
-
-
-# منوها قبل از چک قفل
-
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
@@ -267,10 +287,6 @@ app.add_handler(
 
 
 
-
-
-# بررسی قفل محتوا آخر
-
 app.add_handler(
     MessageHandler(
         filters.ALL & ~filters.COMMAND,
@@ -278,8 +294,6 @@ app.add_handler(
     ),
     group=2
 )
-
-
 
 
 
