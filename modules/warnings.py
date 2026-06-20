@@ -1,51 +1,133 @@
 import json
 import os
 
+
 FILE = "warnings.json"
 
 
 def load():
+
     if not os.path.exists(FILE):
         return {}
 
-    with open(FILE, "r") as f:
+    with open(FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
+
 def save(data):
-    with open(FILE, "w") as f:
-        json.dump(data, f)
+
+    with open(FILE, "w", encoding="utf-8") as f:
+        json.dump(
+            data,
+            f,
+            ensure_ascii=False,
+            indent=4
+        )
 
 
-def add_warn(user_id):
+
+def get_user_warn(chat_id, user_id):
 
     data = load()
 
-    uid = str(user_id)
+    chat = str(chat_id)
+    user = str(user_id)
 
-    if uid not in data:
-        data[uid] = 0
+    if chat not in data:
+        data[chat] = {}
 
-    data[uid] += 1
+    if user not in data[chat]:
+        data[chat][user] = 0
 
     save(data)
 
-    return data[uid]
+    return data
 
 
-def get_warn(user_id):
 
-    data = load()
+async def warn(update, context):
 
-    return data.get(str(user_id), 0)
+    if not update.message.reply_to_message:
+        await update.message.reply_text(
+            "⚠️ روی پیام کاربر ریپلای کن"
+        )
+        return
 
 
-def clear_warn(user_id):
+    user = update.message.reply_to_message.from_user
+    chat = update.effective_chat
 
-    data = load()
 
-    uid = str(user_id)
+    data = get_user_warn(
+        chat.id,
+        user.id
+    )
 
-    data[uid] = 0
+
+    data[str(chat.id)][str(user.id)] += 1
+
+
+    count = data[str(chat.id)][str(user.id)]
+
 
     save(data)
+
+
+
+    await update.message.reply_text(
+        f"⚠️ اخطار ثبت شد\n\n"
+        f"👤 کاربر: {user.first_name}\n"
+        f"🔢 تعداد: {count}/3"
+    )
+
+
+    if count >= 3:
+
+        try:
+
+            await chat.ban_member(
+                user.id
+            )
+
+            await update.message.reply_text(
+                "🚫 کاربر به دلیل ۳ اخطار بن شد"
+            )
+
+        except:
+
+            await update.message.reply_text(
+                "❌ نتونستم بن کنم (ادمین نیستم)"
+            )
+
+
+
+async def clear_warn(update, context):
+
+    if not update.message.reply_to_message:
+        await update.message.reply_text(
+            "🧹 روی پیام کاربر ریپلای کن"
+        )
+        return
+
+
+
+    user = update.message.reply_to_message.from_user
+    chat = update.effective_chat
+
+
+    data = get_user_warn(
+        chat.id,
+        user.id
+    )
+
+
+    data[str(chat.id)][str(user.id)] = 0
+
+    save(data)
+
+
+
+    await update.message.reply_text(
+        f"🧹 اخطارهای {user.first_name} پاک شد"
+    )
