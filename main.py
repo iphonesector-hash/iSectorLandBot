@@ -30,21 +30,18 @@ def clean_text(text):
     if not text:
         return ""
 
-    emojis = [
+    for e in [
         "🎮","🛠","🛡","🔒",
         "👤","📜","⚙️","🆘",
-        "😂","🧠","🎲","🪙",
-        "📌","💪","💬"
-    ]
-
-    for e in emojis:
-        text = text.replace(e, "")
+        "😂","🧠","🎲","🪙"
+    ]:
+        text = text.replace(e,"")
 
     return text.strip()
 
 
 
-async def start(update, context):
+async def start(update,context):
 
     get_user(update.effective_user)
 
@@ -58,19 +55,19 @@ async def start(update, context):
 
 
 
-async def profile_cmd(update, context):
+async def profile_cmd(update,context):
 
-    await profile(update, context)
+    await profile(update,context)
 
 
 
-async def menu_handler(update, context):
 
-    if not update.message:
-        return
 
-    text = clean_text(update.message.text)
+async def menu_handler(update,context):
 
+    text = clean_text(
+        update.message.text
+    )
 
 
     if text == "سرگرمی":
@@ -107,7 +104,7 @@ async def menu_handler(update, context):
 
     elif text == "پروفایل":
 
-        await profile_cmd(update, context)
+        await profile_cmd(update,context)
 
 
 
@@ -115,7 +112,6 @@ async def menu_handler(update, context):
 
         await update.message.reply_text(
             "🛡 مدیریت:\n\n"
-            "ریپلای کن:\n"
             "اخطار\n"
             "پاک کردن اخطار\n"
             "بن\n"
@@ -129,9 +125,27 @@ async def menu_handler(update, context):
 
         await update.message.reply_text(
             "🔒 قفل‌ها:\n\n"
-            "قفل فحش\n"
-            "قفل کلمات\n"
-            "قفل لینک"
+
+            "قفل لینک\n"
+            "حذف قفل لینک\n\n"
+
+            "قفل فوروارد\n"
+            "حذف قفل فوروارد\n\n"
+
+            "قفل یوزرنیم\n"
+            "حذف قفل یوزرنیم\n\n"
+
+            "قفل عکس\n"
+            "حذف قفل عکس\n\n"
+
+            "قفل ویدیو\n"
+            "حذف قفل ویدیو\n\n"
+
+            "قفل فایل\n"
+            "حذف قفل فایل\n\n"
+
+            "قفل استیکر\n"
+            "حذف قفل استیکر"
         )
 
 
@@ -158,97 +172,56 @@ app = Application.builder().token(TOKEN).build()
 
 
 
-app.add_handler(
-    CommandHandler("start", start)
-)
+app.add_handler(CommandHandler("start",start))
 
-app.add_handler(
-    CommandHandler("profile", profile_cmd)
-)
+app.add_handler(CommandHandler("profile",profile_cmd))
 
 
 
 # مدیریت
 
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^اخطار$"),
-        warn
-    )
-)
-
-
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^پاک کردن اخطار$"),
-        clear_warning
-    )
-)
-
-
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^بن$"),
-        ban
-    )
-)
-
-
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^کیک$"),
-        kick
-    )
-)
-
-
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^سکوت$"),
-        mute
-    )
-)
+app.add_handler(MessageHandler(filters.Regex("^اخطار$"),warn))
+app.add_handler(MessageHandler(filters.Regex("^پاک کردن اخطار$"),clear_warning))
+app.add_handler(MessageHandler(filters.Regex("^بن$"),ban))
+app.add_handler(MessageHandler(filters.Regex("^کیک$"),kick))
+app.add_handler(MessageHandler(filters.Regex("^سکوت$"),mute))
 
 
 
 # قفل‌ها
 
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^قفل فحش$"),
-        lock_bad
-    )
-)
+app.add_handler(MessageHandler(filters.Regex("^قفل لینک$"),lock_link))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل لینک$"),unlock_link))
 
 
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^قفل کلمات$"),
-        lock_words
-    )
-)
+app.add_handler(MessageHandler(filters.Regex("^قفل فوروارد$"),lock_forward))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل فوروارد$"),unlock_forward))
 
 
-
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^افزودن کلمه (.+)$"),
-        add_word
-    )
-)
+app.add_handler(MessageHandler(filters.Regex("^قفل یوزرنیم$"),lock_username))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل یوزرنیم$"),unlock_username))
 
 
+app.add_handler(MessageHandler(filters.Regex("^قفل عکس$"),lock_photo))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل عکس$"),unlock_photo))
 
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^لیست کلمات$"),
-        words_list
-    )
-)
+
+app.add_handler(MessageHandler(filters.Regex("^قفل ویدیو$"),lock_video))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل ویدیو$"),unlock_video))
+
+
+app.add_handler(MessageHandler(filters.Regex("^قفل فایل$"),lock_file))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل فایل$"),unlock_file))
+
+
+app.add_handler(MessageHandler(filters.Regex("^قفل استیکر$"),lock_sticker))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل استیکر$"),unlock_sticker))
 
 
 
-# منو
+
+
+# اول منو
 
 app.add_handler(
     MessageHandler(
@@ -260,7 +233,7 @@ app.add_handler(
 
 
 
-# قفل‌ها آخر
+# آخر بررسی قفل‌ها
 
 app.add_handler(
     MessageHandler(
