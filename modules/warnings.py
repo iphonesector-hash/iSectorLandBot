@@ -27,13 +27,7 @@ def save(data):
 
 
 
-def get_data():
-
-    return load()
-
-
-
-def get_user_warn(chat_id, user_id):
+def get_warn(chat_id, user_id):
 
     data = load()
 
@@ -46,7 +40,49 @@ def get_user_warn(chat_id, user_id):
     if user not in data[chat]:
         data[chat][user] = 0
 
-    return data
+    return data[chat][user]
+
+
+
+def set_warn(chat_id, user_id, amount):
+
+    data = load()
+
+    chat = str(chat_id)
+    user = str(user_id)
+
+    if chat not in data:
+        data[chat] = {}
+
+    data[chat][user] = amount
+
+    save(data)
+
+
+
+def add_warn(chat_id, user_id):
+
+    count = get_warn(chat_id, user_id)
+
+    count += 1
+
+    set_warn(
+        chat_id,
+        user_id,
+        count
+    )
+
+    return count
+
+
+
+def remove_warn(chat_id, user_id):
+
+    set_warn(
+        chat_id,
+        user_id,
+        0
+    )
 
 
 
@@ -63,23 +99,16 @@ async def warn(update, context):
     chat = update.effective_chat
 
 
-    data = get_user_warn(
+    count = add_warn(
         chat.id,
         user.id
     )
 
 
-    data[str(chat.id)][str(user.id)] += 1
-
-    count = data[str(chat.id)][str(user.id)]
-
-    save(data)
-
-
     await update.message.reply_text(
         f"⚠️ اخطار ثبت شد\n\n"
         f"👤 {user.first_name}\n"
-        f"🔢 تعداد: {count}/3"
+        f"🔢 {count}/3"
     )
 
 
@@ -94,20 +123,13 @@ async def warn(update, context):
 
         except:
 
-            await update.message.reply_text(
-                "❌ دسترسی بن ندارم"
-            )
+            pass
 
 
 
 async def clear_warn(update, context):
 
     if not update.message.reply_to_message:
-
-        await update.message.reply_text(
-            "🧹 روی پیام کاربر ریپلای کن"
-        )
-
         return
 
 
@@ -115,23 +137,12 @@ async def clear_warn(update, context):
     chat = update.effective_chat
 
 
-    data = get_user_warn(
+    remove_warn(
         chat.id,
         user.id
     )
 
 
-    data[str(chat.id)][str(user.id)] = 0
-
-    save(data)
-
-
     await update.message.reply_text(
-        f"🧹 اخطارهای {user.first_name} پاک شد"
+        "🧹 اخطارها پاک شد"
     )
-
-
-
-# سازگاری با admin.py قدیمی
-add_warn = warn
-remove_warn = clear_warn
