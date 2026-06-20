@@ -53,7 +53,6 @@ async def start(update, context):
 
 
 async def profile_cmd(update, context):
-
     await profile(update, context)
 
 
@@ -91,7 +90,6 @@ async def lock_handler(update, context):
 
 
     if text in commands:
-
         await commands[text](update, context)
 
 
@@ -115,18 +113,56 @@ async def menu_handler(update, context):
 
 
     elif text == "جوک":
-
         await update.message.reply_text(get_joke())
 
 
     elif text == "چیستان":
-
         await update.message.reply_text(riddle())
 
 
     elif text == "تاس":
-
         await update.message.reply_text(dice())
+
+
+
+    elif text == "مدیریت":
+
+        await update.message.reply_text(
+            "🛡 مدیریت:\n\n"
+            "بخش مدیریت آماده است"
+        )
+
+
+
+    elif text == "کاربردی":
+
+        await update.message.reply_text(
+            "🛠 کاربردی:\n\n"
+            "بخش کاربردی آماده است"
+        )
+
+
+
+    elif text == "قوانین":
+
+        await update.message.reply_text(
+            "📜 قوانین گروه"
+        )
+
+
+
+    elif text == "تنظیمات":
+
+        await settings(update, context)
+
+
+
+    elif text == "پشتیبانی":
+
+        await update.message.reply_text(
+            "🆘 پشتیبانی"
+        )
+
 
 
     elif text == "پروفایل":
@@ -182,7 +218,7 @@ app.add_handler(
 
 
 
-# قفل‌ها اول
+# قفل‌ها
 
 app.add_handler(
     MessageHandler(
@@ -196,8 +232,6 @@ app.add_handler(
 
 
 
-# بررسی قفل محتوا
-
 app.add_handler(
     MessageHandler(
         filters.ALL & ~filters.COMMAND,
@@ -207,8 +241,6 @@ app.add_handler(
 )
 
 
-
-# منو
 
 app.add_handler(
     MessageHandler(
@@ -221,6 +253,5 @@ app.add_handler(
 
 
 print("🌻 iSectorLand Started")
-
 
 app.run_polling()
