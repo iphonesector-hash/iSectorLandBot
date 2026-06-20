@@ -45,7 +45,7 @@ async def profile_cmd(update, context):
     info = get_user(update.effective_user)
 
     await update.message.reply_text(
-        "👤 پروفایل\n\n"
+        f"👤 پروفایل\n\n"
         f"نام: {info['name']}\n"
         f"سطح: {info['level']}\n"
         f"سکه: {info['coins']}"
@@ -57,6 +57,7 @@ async def menu_handler(update, context):
 
     if not update.message:
         return
+
 
     text = update.message.text
 
@@ -76,30 +77,22 @@ async def menu_handler(update, context):
 
     elif text == "😂 جوک":
 
-        await update.message.reply_text(
-            get_joke()
-        )
+        await update.message.reply_text(get_joke())
 
 
     elif text == "🧠 چیستان":
 
-        await update.message.reply_text(
-            riddle()
-        )
+        await update.message.reply_text(riddle())
 
 
     elif text == "🎲 تاس":
 
-        await update.message.reply_text(
-            dice()
-        )
+        await update.message.reply_text(dice())
 
 
     elif text == "🪙 شیر یا خط":
 
-        await update.message.reply_text(
-            coin()
-        )
+        await update.message.reply_text(coin())
 
 
 
@@ -136,9 +129,7 @@ async def menu_handler(update, context):
     elif text == "📜 قوانین":
 
         await update.message.reply_text(
-            "📜 قوانین:\n"
-            "احترام\n"
-            "بدون اسپم"
+            "📜 قوانین فعال است"
         )
 
 
@@ -157,97 +148,54 @@ app = Application.builder().token(TOKEN).build()
 
 
 
-app.add_handler(
-    CommandHandler(
-        "start",
-        start
-    )
-)
-
-
-app.add_handler(
-    CommandHandler(
-        "profile",
-        profile_cmd
-    )
-)
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("profile", profile_cmd))
 
 
 
 # مدیریت
 
-app.add_handler(
-    MessageHandler(filters.Regex("^اخطار$"), warn)
-)
-
-app.add_handler(
-    MessageHandler(filters.Regex("^بن$"), ban)
-)
-
-app.add_handler(
-    MessageHandler(filters.Regex("^کیک$"), kick)
-)
-
-app.add_handler(
-    MessageHandler(filters.Regex("^سکوت$"), mute)
-)
+app.add_handler(MessageHandler(filters.Regex("^اخطار$"), warn))
+app.add_handler(MessageHandler(filters.Regex("^بن$"), ban))
+app.add_handler(MessageHandler(filters.Regex("^کیک$"), kick))
+app.add_handler(MessageHandler(filters.Regex("^سکوت$"), mute))
 
 
 
 # قفل‌ها
 
-app.add_handler(
-    MessageHandler(filters.Regex("^قفل فحش$"), lock_bad)
-)
+app.add_handler(MessageHandler(filters.Regex("^قفل فحش$"), lock_bad))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad))
 
-app.add_handler(
-    MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad)
-)
+app.add_handler(MessageHandler(filters.Regex("^قفل کلمات$"), lock_words))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل کلمات$"), unlock_words))
 
-app.add_handler(
-    MessageHandler(filters.Regex("^قفل کلمات$"), lock_words)
-)
+app.add_handler(MessageHandler(filters.Regex("^افزودن کلمه (.+)$"), add_word))
+app.add_handler(MessageHandler(filters.Regex("^لیست کلمات$"), words_list))
 
-
-
-app.add_handler(
-    MessageHandler(filters.Regex("^افزودن کلمه (.+)$"), add_word)
-)
-
-app.add_handler(
-    MessageHandler(filters.Regex("^لیست کلمات$"), words_list)
-)
+app.add_handler(MessageHandler(filters.Regex("^افزودن فحش (.+)$"), add_bad))
+app.add_handler(MessageHandler(filters.Regex("^لیست فحش$"), bad_list))
 
 
 
-app.add_handler(
-    MessageHandler(filters.Regex("^افزودن فحش (.+)$"), add_bad)
-)
-
-app.add_handler(
-    MessageHandler(filters.Regex("^لیست فحش$"), bad_list)
-)
-
-
-
-# اول قفل‌ها
+# اول منو
 
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
-        check_locks
+        menu_handler
     ),
     group=1
 )
 
 
 
-# بعد منو
+# آخر قفل‌ها
 
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
-        menu_handler
+        check_locks
     ),
     group=2
 )
@@ -255,5 +203,6 @@ app.add_handler(
 
 
 print("🌻 iSectorLand Started")
+
 
 app.run_polling()
