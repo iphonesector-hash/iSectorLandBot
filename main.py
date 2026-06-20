@@ -15,14 +15,12 @@ from modules.profile import *
 from config import TOKEN, BOT_NAME
 
 
-
 menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
     ["👤 پروفایل", "📜 قوانین"],
     ["⚙️ تنظیمات", "🆘 پشتیبانی"]
 ]
-
 
 
 def clean(text):
@@ -60,60 +58,41 @@ async def profile_cmd(update, context):
 
 
 
-# ---------- قفل‌ها ----------
+
 
 async def lock_handler(update, context):
 
     text = update.message.text.strip()
 
 
-    if text == "قفل لینک":
-        await lock_link(update, context)
+    commands = {
 
-    elif text == "حذف قفل لینک":
-        await unlock_link(update, context)
+        "قفل لینک": lock_link,
+        "حذف قفل لینک": unlock_link,
 
+        "قفل فوروارد": lock_forward,
+        "حذف قفل فوروارد": unlock_forward,
 
-    elif text == "قفل فوروارد":
-        await lock_forward(update, context)
+        "قفل یوزرنیم": lock_username,
+        "حذف قفل یوزرنیم": unlock_username,
 
-    elif text == "حذف قفل فوروارد":
-        await unlock_forward(update, context)
+        "قفل عکس": lock_photo,
+        "حذف قفل عکس": unlock_photo,
 
+        "قفل ویدیو": lock_video,
+        "حذف قفل ویدیو": unlock_video,
 
-    elif text == "قفل یوزرنیم":
-        await lock_username(update, context)
+        "قفل فایل": lock_file,
+        "حذف قفل فایل": unlock_file,
 
-    elif text == "حذف قفل یوزرنیم":
-        await unlock_username(update, context)
-
-
-    elif text == "قفل عکس":
-        await lock_photo(update, context)
-
-    elif text == "حذف قفل عکس":
-        await unlock_photo(update, context)
+        "قفل استیکر": lock_sticker,
+        "حذف قفل استیکر": unlock_sticker
+    }
 
 
-    elif text == "قفل ویدیو":
-        await lock_video(update, context)
+    if text in commands:
 
-    elif text == "حذف قفل ویدیو":
-        await unlock_video(update, context)
-
-
-    elif text == "قفل فایل":
-        await lock_file(update, context)
-
-    elif text == "حذف قفل فایل":
-        await unlock_file(update, context)
-
-
-    elif text == "قفل استیکر":
-        await lock_sticker(update, context)
-
-    elif text == "حذف قفل استیکر":
-        await unlock_sticker(update, context)
+        await commands[text](update, context)
 
 
 
@@ -122,6 +101,7 @@ async def lock_handler(update, context):
 async def menu_handler(update, context):
 
     text = clean(update.message.text)
+
 
 
     if text == "سرگرمی":
@@ -136,23 +116,17 @@ async def menu_handler(update, context):
 
     elif text == "جوک":
 
-        await update.message.reply_text(
-            get_joke()
-        )
+        await update.message.reply_text(get_joke())
 
 
     elif text == "چیستان":
 
-        await update.message.reply_text(
-            riddle()
-        )
+        await update.message.reply_text(riddle())
 
 
     elif text == "تاس":
 
-        await update.message.reply_text(
-            dice()
-        )
+        await update.message.reply_text(dice())
 
 
     elif text == "پروفایل":
@@ -161,22 +135,30 @@ async def menu_handler(update, context):
 
 
 
+
     elif text == "قفل‌ها":
 
         await update.message.reply_text(
             "🔒 قفل‌ها:\n\n"
+
             "قفل لینک\n"
             "حذف قفل لینک\n\n"
+
             "قفل فوروارد\n"
             "حذف قفل فوروارد\n\n"
+
             "قفل یوزرنیم\n"
             "حذف قفل یوزرنیم\n\n"
+
             "قفل عکس\n"
             "حذف قفل عکس\n\n"
+
             "قفل ویدیو\n"
             "حذف قفل ویدیو\n\n"
+
             "قفل فایل\n"
             "حذف قفل فایل\n\n"
+
             "قفل استیکر\n"
             "حذف قفل استیکر"
         )
@@ -192,6 +174,7 @@ app = Application.builder().token(TOKEN).build()
 app.add_handler(
     CommandHandler("start", start)
 )
+
 
 app.add_handler(
     CommandHandler("profile", profile_cmd)
@@ -225,7 +208,7 @@ app.add_handler(
 
 
 
-# منو آخر
+# منو
 
 app.add_handler(
     MessageHandler(
@@ -238,5 +221,6 @@ app.add_handler(
 
 
 print("🌻 iSectorLand Started")
+
 
 app.run_polling()
