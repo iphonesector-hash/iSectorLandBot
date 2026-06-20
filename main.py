@@ -11,8 +11,9 @@ from modules.fun import (
     get_text, dice, coin, riddle, rps, random_number
 )
 from modules.admin import (
-    warn, clear_warning, warns,
-    ban, unban, kick, mute, unmute
+    warn, clear_warning, warns, setwarnlimit,
+    ban, unban, kick, mute, unmute,
+    admin_text_handler, get_warn_limit
 )
 from modules.locks import (
     lock_link, unlock_link,
@@ -39,7 +40,7 @@ from modules.useful import (
 from config import TOKEN, BOT_NAME
 
 
-# ─── منوی اصلی ─────────────────────────────────────────
+# ─── منوها ─────────────────────────────────────────────
 main_menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
@@ -62,7 +63,10 @@ useful_menu = [
 ]
 
 admin_menu = [
-    ["⚠️ راهنمای دستورات مدیریت"],
+    ["⚠️ اخطار", "🧹 پاک اخطار", "📋 اخطارها"],
+    ["🚫 بن", "✅ آنبن", "👢 کیک"],
+    ["🔇 میوت", "🔊 آنمیوت"],
+    ["⚙️ تنظیم حد اخطار"],
     ["🔙 برگشت"]
 ]
 
@@ -99,7 +103,8 @@ def clean(text):
         return ""
     for e in ["🎮","🛠","🛡","🔒","👤","📜","⚙️","🆘","🏆",
               "😂","🧠","💪","✨","🎲","🪙","🧩","✂️",
-              "🌤","🌐","🔢","📐","⚠️","🔙"]:
+              "🌤","🌐","🔢","📐","⚠️","🔙","🚫","✅",
+              "👢","🔇","🔊","📋","🧹"]:
         text = text.replace(e, "")
     return text.strip()
 
@@ -141,28 +146,57 @@ async def convert_cmd(update: Update, context):
 async def lock_handler(update: Update, context):
     text = update.message.text.strip()
     cmds = {
-        "قفل لینک": lock_link,
-        "حذف قفل لینک": unlock_link,
-        "قفل فوروارد": lock_forward,
-        "حذف قفل فوروارد": unlock_forward,
-        "قفل یوزرنیم": lock_username,
-        "حذف قفل یوزرنیم": unlock_username,
-        "قفل عکس": lock_photo,
-        "حذف قفل عکس": unlock_photo,
-        "قفل ویدیو": lock_video,
-        "حذف قفل ویدیو": unlock_video,
-        "قفل فایل": lock_file,
-        "حذف قفل فایل": unlock_file,
-        "قفل استیکر": lock_sticker,
-        "حذف قفل استیکر": unlock_sticker,
+        "قفل لینک": lock_link, "حذف قفل لینک": unlock_link,
+        "قفل فوروارد": lock_forward, "حذف قفل فوروارد": unlock_forward,
+        "قفل یوزرنیم": lock_username, "حذف قفل یوزرنیم": unlock_username,
+        "قفل عکس": lock_photo, "حذف قفل عکس": unlock_photo,
+        "قفل ویدیو": lock_video, "حذف قفل ویدیو": unlock_video,
+        "قفل فایل": lock_file, "حذف قفل فایل": unlock_file,
+        "قفل استیکر": lock_sticker, "حذف قفل استیکر": unlock_sticker,
     }
     if text in cmds:
         await cmds[text](update, context)
 
 
+# دستورات مدیریتی فارسی (دکمه‌ای)
+ADMIN_COMMANDS = {
+    "اخطار": warn,
+    "پاک اخطار": clear_warning,
+    "اخطارها": warns,
+    "بن": ban,
+    "آنبن": unban,
+    "کیک": kick,
+    "میوت": mute,
+    "آنمیوت": unmute,
+}
+
+
 async def menu_handler(update: Update, context):
     text = update.message.text.strip()
     c = clean(text)
+
+    # ─── دستورات مدیریتی فارسی ───
+    if c in ADMIN_COMMANDS:
+        context.args = []
+        await ADMIN_COMMANDS[c](update, context)
+        return
+
+    # تنظیم حد اخطار
+    if c == "تنظیم حد اخطار":
+        limit = get_warn_limit(update.effective_chat.id)
+        await update.message.reply_text(
+            f"⚙️ <b>تنظیم حد اخطار</b>\n\n"
+            f"حد فعلی: <b>{limit}</b> اخطار\n\n"
+            f"برای تغییر بنویس:\n"
+            f"<code>اخطار حد [عدد]</code>\n"
+            f"مثال: <code>اخطار حد 5</code>",
+            parse_mode="HTML"
+        )
+        return
+
+    if text.startswith("اخطار حد"):
+        await admin_text_handler(update, context)
+        return
 
     # ─── منوی اصلی ───
     if c == "سرگرمی":
@@ -172,18 +206,12 @@ async def menu_handler(update: Update, context):
         await update.message.reply_text("🛠 بخش کاربردی:", reply_markup=useful_kb())
 
     elif c == "مدیریت":
+        limit = get_warn_limit(update.effective_chat.id)
         await update.message.reply_text(
-            "🛡 <b>دستورات مدیریت</b>\n"
-            "─────────────────\n"
-            "⚠️ <code>/warn</code> — اخطار به کاربر\n"
-            "🧹 <code>/clearwarn</code> — پاک کردن اخطارها\n"
-            "📋 <code>/warns</code> — مشاهده اخطارها\n"
-            "🚫 <code>/ban</code> — بن کاربر\n"
-            "✅ <code>/unban</code> — آنبن کاربر\n"
-            "👢 <code>/kick</code> — کیک کاربر\n"
-            "🔇 <code>/mute</code> — سکوت کاربر\n"
-            "🔊 <code>/unmute</code> — آنمیوت کاربر\n\n"
-            "📌 روی پیام کاربر ریپلای کن، بعد دستور بده.",
+            f"🛡 <b>پنل مدیریت</b>\n"
+            f"─────────────────\n"
+            f"📌 روی پیام کاربر ریپلای کن، بعد دکمه مورد نظر رو بزن.\n\n"
+            f"⚙️ حد اخطار فعلی: <b>{limit}</b>",
             reply_markup=admin_kb(),
             parse_mode="HTML"
         )
@@ -202,8 +230,7 @@ async def menu_handler(update: Update, context):
 
     elif c == "پشتیبانی":
         await update.message.reply_text(
-            "🆘 <b>پشتیبانی</b>\n\n"
-            "برای گزارش مشکل یا پیشنهاد با سازنده تماس بگیر.",
+            "🆘 <b>پشتیبانی</b>\n\nبرای گزارش مشکل با سازنده تماس بگیر.",
             parse_mode="HTML"
         )
 
@@ -213,30 +240,20 @@ async def menu_handler(update: Update, context):
     # ─── منوی سرگرمی ───
     elif c == "جوک":
         await update.message.reply_text(get_joke())
-
     elif c == "فکت":
         await update.message.reply_text(get_fact())
-
     elif c == "انگیزشی":
         await update.message.reply_text(get_motive())
-
     elif c == "متن":
         await update.message.reply_text(get_text())
-
     elif c == "تاس":
         await update.message.reply_text(dice())
-
     elif c == "شیر یا خط":
         await update.message.reply_text(coin())
-
     elif c == "چیستان":
         await update.message.reply_text(riddle(), parse_mode="HTML")
-
     elif c == "سنگ کاغذ قیچی":
-        await update.message.reply_text(
-            "✂️ بنویس: سنگ، کاغذ یا قیچی"
-        )
-
+        await update.message.reply_text("✂️ بنویس: سنگ، کاغذ یا قیچی")
     elif c in ["سنگ", "کاغذ", "قیچی"]:
         await update.message.reply_text(rps(c))
 
@@ -250,16 +267,16 @@ async def menu_handler(update: Update, context):
             add_message(update.effective_user)
 
 
-# ─── راه‌اندازی ربات ───────────────────────────────────
+# ─── راه‌اندازی ───────────────────────────────────────
 app = Application.builder().token(TOKEN).build()
 
-# دستورات
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("profile", profile_handler))
 app.add_handler(CommandHandler("top", leaderboard_handler))
 app.add_handler(CommandHandler("warn", warn))
 app.add_handler(CommandHandler("clearwarn", clear_warning))
 app.add_handler(CommandHandler("warns", warns))
+app.add_handler(CommandHandler("setwarnlimit", setwarnlimit))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CommandHandler("kick", kick))
@@ -272,7 +289,7 @@ app.add_handler(CommandHandler("convert", convert_cmd))
 app.add_handler(CommandHandler("toggle", toggle_setting))
 app.add_handler(CommandHandler("setwelcome", set_welcome))
 
-# قفل‌ها (group=0 اول اجرا میشه)
+# قفل‌ها
 app.add_handler(
     MessageHandler(
         filters.Regex(
@@ -292,13 +309,13 @@ app.add_handler(
     group=0
 )
 
-# منوی اصلی
+# منو
 app.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND, menu_handler),
     group=1
 )
 
-# چک قفل‌ها (group=2 آخر اجرا میشه)
+# چک قفل‌ها
 app.add_handler(
     MessageHandler(filters.ALL & ~filters.COMMAND, check_locks),
     group=2
