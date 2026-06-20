@@ -1,268 +1,193 @@
-import json
-import os
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    ContextTypes,
+    filters
+)
+
+from modules.fun import *
+from modules.admin import *
+from modules.locks import *
+from modules.settings import *
+from modules.profile import *
+
+from config import TOKEN, BOT_NAME
 
 
-FILE = "locks.json"
 
-
-def load():
-
-    if not os.path.exists(FILE):
-        return {}
-
-    with open(FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+menu = [
+    ["🎮 سرگرمی", "🛠 کاربردی"],
+    ["🛡 مدیریت", "🔒 قفل‌ها"],
+    ["👤 پروفایل", "🏆 رتبه‌بندی"],
+    ["⚙️ تنظیمات", "📜 قوانین"],
+    ["🆘 پشتیبانی"]
+]
 
 
 
-def save(data):
+async def start(update: Update, context):
 
-    with open(FILE, "w", encoding="utf-8") as f:
-        json.dump(
-            data,
-            f,
-            ensure_ascii=False,
-            indent=4
+    get_user(update.effective_user)
+
+    await update.message.reply_text(
+        f"{BOT_NAME}\n\n🌻 خوش اومدی",
+        reply_markup=ReplyKeyboardMarkup(
+            menu,
+            resize_keyboard=True
         )
-
-
-
-def get_chat(chat_id):
-
-    data = load()
-    cid = str(chat_id)
-
-    if cid not in data:
-
-        data[cid] = {
-            "bad_words": False,
-            "words": False,
-            "links": False,
-            "list": []
-        }
-
-        save(data)
-
-    return data[cid]
-
-
-
-# قفل فحش
-
-async def lock_bad(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["bad_words"] = True
-
-    save(load())
-
-    await update.message.reply_text(
-        "🔒 قفل فحش فعال شد"
     )
 
 
 
-async def unlock_bad(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["bad_words"] = False
-
-    save(load())
+async def help_cmd(update, context):
 
     await update.message.reply_text(
-        "🔓 قفل فحش خاموش شد"
+        "📌 راهنما\n/start\n/profile"
     )
 
 
 
-# قفل کلمات
+async def profile_cmd(update, context):
 
-async def lock_words(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["words"] = True
-
-    save(load())
+    info = get_user(update.effective_user)
 
     await update.message.reply_text(
-        "🔒 قفل کلمات فعال شد"
+        "👤 پروفایل\n\n"
+        f"نام: {info['name']}\n"
+        f"سطح: {info['level']}\n"
+        f"سکه: {info['coins']}"
     )
 
 
 
-async def unlock_words(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["words"] = False
-
-    save(load())
-
-    await update.message.reply_text(
-        "🔓 قفل کلمات خاموش شد"
-    )
-
-
-
-# لینک
-
-async def lock_links(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["links"] = True
-
-    save(load())
-
-    await update.message.reply_text(
-        "🔒 قفل لینک فعال شد"
-    )
-
-
-
-async def unlock_links(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["links"] = False
-
-    save(load())
-
-    await update.message.reply_text(
-        "🔓 قفل لینک خاموش شد"
-    )
-
-
-
-# اضافه کردن کلمه
-
-async def add_word(update, context):
-
-    if not context.args:
-        await update.message.reply_text(
-            "مثال:\nافزودن کلمه تست"
-        )
-        return
-
-
-    word = " ".join(context.args)
-
-    cfg = get_chat(update.effective_chat.id)
-
-
-    if word not in cfg["list"]:
-
-        cfg["list"].append(word)
-
-        save(load())
-
-
-    await update.message.reply_text(
-        f"✅ کلمه اضافه شد:\n{word}"
-    )
-
-
-
-# حذف کلمه
-
-async def remove_word(update, context):
-
-    if not context.args:
-        return
-
-
-    word = " ".join(context.args)
-
-    cfg = get_chat(update.effective_chat.id)
-
-
-    if word in cfg["list"]:
-
-        cfg["list"].remove(word)
-
-        save(load())
-
-
-    await update.message.reply_text(
-        "🗑 حذف شد"
-    )
-
-
-
-# لیست
-
-async def words_list(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-
-    if not cfg["list"]:
-
-        await update.message.reply_text(
-            "📋 لیست خالی است"
-        )
-        return
-
-
-    await update.message.reply_text(
-        "📋 کلمات:\n\n" +
-        "\n".join(cfg["list"])
-    )
-
-
-
-# بررسی پیام
-
-async def check_locks(update, context):
-
-    if not update.message or not update.message.text:
-        return
-
+async def menu_handler(update, context):
 
     text = update.message.text
 
-    cfg = get_chat(
-        update.effective_chat.id
-    )
+
+    if text == "🎮 سرگرمی":
+        await update.message.reply_text(
+            "🎮 سرگرمی:\n\n"
+            "😂 جوک\n"
+            "🧠 چیستان\n"
+            "🎲 تاس\n"
+            "🪙 شیر یا خط"
+        )
 
 
-    bad = [
-        "فحش",
-        "بد"
-    ]
+    elif text == "😂 جوک":
+        await update.message.reply_text(get_joke())
 
 
-    if cfg["bad_words"]:
-
-        for w in bad:
-
-            if w in text:
-
-                await update.message.delete()
-
-                return
+    elif text == "🧠 چیستان":
+        await update.message.reply_text(riddle())
 
 
-
-    if cfg["links"]:
-
-        if "http://" in text or "https://" in text:
-
-            await update.message.delete()
-
-            return
+    elif text == "🎲 تاس":
+        await update.message.reply_text(dice())
 
 
+    elif text == "🪙 شیر یا خط":
+        await update.message.reply_text(coin())
 
-    if cfg["words"]:
 
-        for w in cfg["list"]:
+    elif text == "👤 پروفایل":
+        await profile_cmd(update, context)
 
-            if w in text:
 
-                await update.message.delete()
+    elif text == "🛡 مدیریت":
+        await update.message.reply_text(
+            "🛡 مدیریت:\n\n"
+            "اخطار\n"
+            "بن\n"
+            "کیک\n"
+            "سکوت"
+        )
 
-                return
+
+    elif text == "🔒 قفل‌ها":
+        await update.message.reply_text(
+            "🔒 قفل‌ها:\n\n"
+            "قفل فحش\n"
+            "حذف قفل فحش\n"
+            "قفل کلمات\n"
+            "حذف قفل کلمات\n"
+            "قفل لینک\n"
+            "حذف قفل لینک"
+        )
+
+
+    elif text == "📜 قوانین":
+        await update.message.reply_text(
+            "📜 قوانین:\nاحترام + بدون اسپم"
+        )
+
+
+    elif text == "🆘 پشتیبانی":
+        await update.message.reply_text(
+            "🆘 پشتیبانی iSectorLand"
+        )
+
+
+
+app = Application.builder().token(TOKEN).build()
+
+
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("help", help_cmd))
+app.add_handler(CommandHandler("profile", profile_cmd))
+
+
+
+# اول دستورهای قفل
+
+app.add_handler(MessageHandler(filters.Regex("^قفل فحش$"), lock_bad))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad))
+
+app.add_handler(MessageHandler(filters.Regex("^قفل کلمات$"), lock_words))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل کلمات$"), unlock_words))
+
+app.add_handler(MessageHandler(filters.Regex("^قفل لینک$"), lock_links))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل لینک$"), unlock_links))
+
+
+
+# مدیریت
+
+app.add_handler(MessageHandler(filters.Regex("^اخطار$"), warn))
+app.add_handler(MessageHandler(filters.Regex("^بن$"), ban))
+app.add_handler(MessageHandler(filters.Regex("^کیک$"), kick))
+app.add_handler(MessageHandler(filters.Regex("^سکوت$"), mute))
+
+
+
+# قفل روی پیام های عادی (بعد از دستورات)
+
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        check_locks
+    ),
+    group=1
+)
+
+
+
+# منو
+
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        menu_handler
+    ),
+    group=2
+)
+
+
+
+print("🌻 iSectorLand Started")
+
+app.run_polling()
