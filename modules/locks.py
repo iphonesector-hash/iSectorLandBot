@@ -5,6 +5,7 @@ import os
 FILE = "locks.json"
 
 
+
 def load():
 
     if not os.path.exists(FILE):
@@ -30,7 +31,9 @@ def save(data):
 def get_chat(chat_id):
 
     data = load()
+
     cid = str(chat_id)
+
 
     if cid not in data:
 
@@ -42,6 +45,7 @@ def get_chat(chat_id):
         }
 
         save(data)
+
 
     return data[cid]
 
@@ -55,7 +59,10 @@ async def lock_bad(update, context):
 
     cfg["bad_words"] = True
 
-    save(load())
+    data = load()
+    data[str(update.effective_chat.id)] = cfg
+    save(data)
+
 
     await update.message.reply_text(
         "🔒 قفل فحش فعال شد"
@@ -69,7 +76,10 @@ async def unlock_bad(update, context):
 
     cfg["bad_words"] = False
 
-    save(load())
+    data = load()
+    data[str(update.effective_chat.id)] = cfg
+    save(data)
+
 
     await update.message.reply_text(
         "🔓 قفل فحش خاموش شد"
@@ -85,7 +95,10 @@ async def lock_words(update, context):
 
     cfg["words"] = True
 
-    save(load())
+    data = load()
+    data[str(update.effective_chat.id)] = cfg
+    save(data)
+
 
     await update.message.reply_text(
         "🔒 قفل کلمات فعال شد"
@@ -99,7 +112,10 @@ async def unlock_words(update, context):
 
     cfg["words"] = False
 
-    save(load())
+    data = load()
+    data[str(update.effective_chat.id)] = cfg
+    save(data)
+
 
     await update.message.reply_text(
         "🔓 قفل کلمات خاموش شد"
@@ -115,7 +131,10 @@ async def lock_links(update, context):
 
     cfg["links"] = True
 
-    save(load())
+    data = load()
+    data[str(update.effective_chat.id)] = cfg
+    save(data)
+
 
     await update.message.reply_text(
         "🔒 قفل لینک فعال شد"
@@ -129,7 +148,10 @@ async def unlock_links(update, context):
 
     cfg["links"] = False
 
-    save(load())
+    data = load()
+    data[str(update.effective_chat.id)] = cfg
+    save(data)
+
 
     await update.message.reply_text(
         "🔓 قفل لینک خاموش شد"
@@ -137,31 +159,52 @@ async def unlock_links(update, context):
 
 
 
-# اضافه کردن کلمه
+# افزودن کلمه
 
 async def add_word(update, context):
 
-    if not context.args:
+    text = update.message.text
+
+    word = text.replace(
+        "افزودن کلمه",
+        ""
+    ).strip()
+
+
+    if not word:
+
         await update.message.reply_text(
             "مثال:\nافزودن کلمه تست"
         )
         return
 
 
-    word = " ".join(context.args)
 
-    cfg = get_chat(update.effective_chat.id)
+    data = load()
+
+    cid = str(update.effective_chat.id)
 
 
-    if word not in cfg["list"]:
+    if cid not in data:
 
-        cfg["list"].append(word)
+        data[cid] = {
+            "bad_words": False,
+            "words": False,
+            "links": False,
+            "list": []
+        }
 
-        save(load())
+
+    if word not in data[cid]["list"]:
+
+        data[cid]["list"].append(word)
+
+
+    save(data)
 
 
     await update.message.reply_text(
-        f"✅ کلمه اضافه شد:\n{word}"
+        f"✅ کلمه ذخیره شد:\n{word}"
     )
 
 
@@ -170,24 +213,31 @@ async def add_word(update, context):
 
 async def remove_word(update, context):
 
-    if not context.args:
-        return
+    text = update.message.text
+
+    word = text.replace(
+        "حذف کلمه",
+        ""
+    ).strip()
 
 
-    word = " ".join(context.args)
+    data = load()
 
-    cfg = get_chat(update.effective_chat.id)
+    cid = str(update.effective_chat.id)
 
 
-    if word in cfg["list"]:
+    if cid in data:
 
-        cfg["list"].remove(word)
+        if word in data[cid]["list"]:
 
-        save(load())
+            data[cid]["list"].remove(word)
+
+
+    save(data)
 
 
     await update.message.reply_text(
-        "🗑 حذف شد"
+        f"🗑 حذف شد:\n{word}"
     )
 
 
@@ -196,7 +246,9 @@ async def remove_word(update, context):
 
 async def words_list(update, context):
 
-    cfg = get_chat(update.effective_chat.id)
+    cfg = get_chat(
+        update.effective_chat.id
+    )
 
 
     if not cfg["list"]:
@@ -207,8 +259,10 @@ async def words_list(update, context):
         return
 
 
+
     await update.message.reply_text(
-        "📋 کلمات:\n\n" +
+        "📋 کلمات فیلتر:\n\n"
+        +
         "\n".join(cfg["list"])
     )
 
@@ -218,26 +272,25 @@ async def words_list(update, context):
 
 async def check_locks(update, context):
 
-    if not update.message or not update.message.text:
+    if not update.message:
+        return
+
+
+    if not update.message.text:
         return
 
 
     text = update.message.text
+
 
     cfg = get_chat(
         update.effective_chat.id
     )
 
 
-    bad = [
-        "فحش",
-        "بد"
-    ]
+    if cfg["words"]:
 
-
-    if cfg["bad_words"]:
-
-        for w in bad:
+        for w in cfg["list"]:
 
             if w in text:
 
@@ -254,15 +307,3 @@ async def check_locks(update, context):
             await update.message.delete()
 
             return
-
-
-
-    if cfg["words"]:
-
-        for w in cfg["list"]:
-
-            if w in text:
-
-                await update.message.delete()
-
-                return
