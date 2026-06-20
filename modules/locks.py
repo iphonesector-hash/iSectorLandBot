@@ -11,15 +11,19 @@ def load():
     if not os.path.exists(FILE):
         return {}
 
-    with open(FILE,"r") as f:
-        return json.load(f)
+    with open(FILE, "r") as f:
+        return json.load()
 
 
 
 def save(data):
 
-    with open(FILE,"w") as f:
-        json.dump(data,f,indent=4)
+    with open(FILE, "w") as f:
+        json.dump(
+            data,
+            f,
+            indent=4
+        )
 
 
 
@@ -29,12 +33,9 @@ def get_chat(chat_id):
 
     cid = str(chat_id)
 
-
     if cid not in data:
 
         data[cid] = {
-            "bad_words": False,
-            "words": False,
             "links": False,
             "forward": False,
             "username": False,
@@ -46,18 +47,41 @@ def get_chat(chat_id):
 
         save(data)
 
-
     return data[cid]
 
 
 
-async def toggle(update, key, status):
+async def is_admin(update, context):
+
+    admins = await context.bot.get_chat_administrators(
+        update.effective_chat.id
+    )
+
+    for admin in admins:
+        if admin.user.id == update.effective_user.id:
+            return True
+
+    return False
+
+
+
+async def toggle(update, context, key, value):
+
+    if not await is_admin(update, context):
+
+        await update.message.reply_text(
+            "⛔ فقط ادمین‌ها اجازه تغییر قفل دارند"
+        )
+
+        return
+
 
     chat = update.effective_chat
 
     data = get_chat(chat.id)
 
-    data[key] = status
+    data[key] = value
+
 
     all_data = load()
 
@@ -68,68 +92,68 @@ async def toggle(update, key, status):
 
 
     await update.message.reply_text(
-        "🔒 فعال شد" if status else "🔓 خاموش شد"
+        "🔒 قفل فعال شد"
+        if value
+        else
+        "🔓 قفل خاموش شد"
     )
 
 
 
 
-
 async def lock_link(update,context):
-    await toggle(update,"links",True)
+    await toggle(update,context,"links",True)
 
 async def unlock_link(update,context):
-    await toggle(update,"links",False)
+    await toggle(update,context,"links",False)
 
 
 
 async def lock_forward(update,context):
-    await toggle(update,"forward",True)
+    await toggle(update,context,"forward",True)
 
 async def unlock_forward(update,context):
-    await toggle(update,"forward",False)
+    await toggle(update,context,"forward",False)
 
 
 
 async def lock_username(update,context):
-    await toggle(update,"username",True)
+    await toggle(update,context,"username",True)
 
 async def unlock_username(update,context):
-    await toggle(update,"username",False)
+    await toggle(update,context,"username",False)
 
 
 
 async def lock_photo(update,context):
-    await toggle(update,"photo",True)
+    await toggle(update,context,"photo",True)
 
 async def unlock_photo(update,context):
-    await toggle(update,"photo",False)
+    await toggle(update,context,"photo",False)
 
 
 
 async def lock_video(update,context):
-    await toggle(update,"video",True)
+    await toggle(update,context,"video",True)
 
 async def unlock_video(update,context):
-    await toggle(update,"video",False)
+    await toggle(update,context,"video",False)
 
 
 
 async def lock_file(update,context):
-    await toggle(update,"file",True)
+    await toggle(update,context,"file",True)
 
 async def unlock_file(update,context):
-    await toggle(update,"file",False)
+    await toggle(update,context,"file",False)
 
 
 
 async def lock_sticker(update,context):
-    await toggle(update,"sticker",True)
+    await toggle(update,context,"sticker",True)
 
 async def unlock_sticker(update,context):
-    await toggle(update,"sticker",False)
-
-
+    await toggle(update,context,"sticker",False)
 
 
 
@@ -141,11 +165,14 @@ async def check_locks(update,context):
 
 
     msg = update.message
-    cfg = get_chat(update.effective_chat.id)
+
+    cfg = get_chat(
+        update.effective_chat.id
+    )
 
 
 
-    if cfg["links"]:
+    if cfg.get("links"):
 
         text = msg.text or ""
 
@@ -156,7 +183,7 @@ async def check_locks(update,context):
 
 
 
-    if cfg["username"]:
+    if cfg.get("username"):
 
         if "@" in (msg.text or ""):
 
@@ -165,8 +192,7 @@ async def check_locks(update,context):
 
 
 
-
-    if cfg["forward"]:
+    if cfg.get("forward"):
 
         if msg.forward_date:
 
@@ -175,29 +201,28 @@ async def check_locks(update,context):
 
 
 
-
-    if cfg["photo"] and msg.photo:
-
-        await msg.delete()
-        return
-
-
-
-    if cfg["video"] and msg.video:
+    if cfg.get("photo") and msg.photo:
 
         await msg.delete()
         return
 
 
 
-    if cfg["file"] and msg.document:
+    if cfg.get("video") and msg.video:
 
         await msg.delete()
         return
 
 
 
-    if cfg["sticker"] and msg.sticker:
+    if cfg.get("file") and msg.document:
+
+        await msg.delete()
+        return
+
+
+
+    if cfg.get("sticker") and msg.sticker:
 
         await msg.delete()
         return
