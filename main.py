@@ -14,11 +14,13 @@ from modules.admin import (
     kick,
     mute
 )
+
 from modules.locks import *
-from modules.settings import *
 from modules.profile import *
+from modules.settings import *
 
 from config import TOKEN, BOT_NAME
+
 
 
 menu = [
@@ -29,18 +31,23 @@ menu = [
 ]
 
 
+
 def clean(text):
 
     if not text:
         return ""
 
-    for e in [
+    emojis = [
         "🎮","🛠","🛡","🔒",
         "👤","📜","⚙️","🆘"
-    ]:
+    ]
+
+    for e in emojis:
         text = text.replace(e, "")
 
     return text.strip()
+
+
 
 
 
@@ -58,16 +65,20 @@ async def start(update, context):
 
 
 
+
+
 async def profile_cmd(update, context):
 
-    user = get_user(update.effective_user)
+    user = get_user(
+        update.effective_user
+    )
 
     await update.message.reply_text(
         f"👤 پروفایل\n\n"
         f"نام: {user['name']}\n"
         f"⭐ لول: {user['level']}\n"
         f"🪙 سکه: {user['coins']}\n"
-        f"VIP: {user['vip']}"
+        f"💎 VIP: {user['vip']}"
     )
 
 
@@ -80,6 +91,7 @@ async def lock_handler(update, context):
 
 
     cmds = {
+
         "قفل لینک": lock_link,
         "حذف قفل لینک": unlock_link,
 
@@ -110,9 +122,13 @@ async def lock_handler(update, context):
 
 
 
+
+
 async def menu_handler(update, context):
 
-    text = clean(update.message.text)
+    text = clean(
+        update.message.text
+    )
 
 
 
@@ -130,32 +146,48 @@ async def menu_handler(update, context):
         )
 
 
+
     elif text == "جوک":
-        await update.message.reply_text(get_joke())
+        await update.message.reply_text(
+            get_joke()
+        )
 
 
     elif text == "فکت":
-        await update.message.reply_text(get_fact())
+        await update.message.reply_text(
+            get_fact()
+        )
 
 
     elif text == "انگیزشی":
-        await update.message.reply_text(get_motive())
+        await update.message.reply_text(
+            get_motive()
+        )
 
 
     elif text == "متن":
-        await update.message.reply_text(get_text())
+        await update.message.reply_text(
+            get_text()
+        )
 
 
     elif text == "تاس":
-        await update.message.reply_text(dice())
+        await update.message.reply_text(
+            dice()
+        )
 
 
     elif text == "شیر یا خط":
-        await update.message.reply_text(coin())
+        await update.message.reply_text(
+            coin()
+        )
 
 
     elif text == "چیستان":
-        await update.message.reply_text(riddle())
+        await update.message.reply_text(
+            riddle()
+        )
+
 
 
 
@@ -163,7 +195,7 @@ async def menu_handler(update, context):
 
         await update.message.reply_text(
             "🛡 مدیریت:\n\n"
-            "دستورات:\n"
+            "دستورات:\n\n"
             "/warn\n"
             "/clearwarn\n"
             "/ban\n"
@@ -173,20 +205,16 @@ async def menu_handler(update, context):
 
 
 
-    elif text == "پروفایل":
-
-        await profile_cmd(update, context)
-
-
 
     elif text == "قوانین":
 
         await update.message.reply_text(
             "📜 قوانین:\n\n"
             "• اسپم ممنوع\n"
-            "• تبلیغ ممنوع\n"
+            "• تبلیغات ممنوع\n"
             "• بی احترامی ممنوع"
         )
+
 
 
 
@@ -194,24 +222,29 @@ async def menu_handler(update, context):
 
         await update.message.reply_text(
             "🛠 کاربردی:\n\n"
-            "بخش کاربردی فعال است"
+            "بخش کاربردی فعال شد"
         )
+
 
 
 
     elif text == "تنظیمات":
 
         await update.message.reply_text(
-            "⚙️ تنظیمات فعال است"
+            "⚙️ تنظیمات:\n\n"
+            "تنظیمات گروه از طریق ادمین انجام می‌شود"
         )
+
 
 
 
     elif text == "پشتیبانی":
 
         await update.message.reply_text(
-            "🆘 پشتیبانی"
+            "🆘 پشتیبانی:\n\n"
+            "برای کمک پیام ارسال کنید"
         )
+
 
 
 
@@ -219,18 +252,25 @@ async def menu_handler(update, context):
 
         await update.message.reply_text(
             "🔒 قفل‌ها:\n\n"
+
             "قفل لینک\n"
             "حذف قفل لینک\n\n"
+
             "قفل فوروارد\n"
             "حذف قفل فوروارد\n\n"
+
             "قفل یوزرنیم\n"
             "حذف قفل یوزرنیم\n\n"
+
             "قفل عکس\n"
             "حذف قفل عکس\n\n"
+
             "قفل ویدیو\n"
             "حذف قفل ویدیو\n\n"
+
             "قفل فایل\n"
             "حذف قفل فایل\n\n"
+
             "قفل استیکر\n"
             "حذف قفل استیکر"
         )
@@ -243,17 +283,51 @@ async def menu_handler(update, context):
 app = Application.builder().token(TOKEN).build()
 
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("profile", profile_cmd))
+
+app.add_handler(
+    CommandHandler(
+        "start",
+        start
+    )
+)
 
 
-app.add_handler(CommandHandler("warn", warn))
-app.add_handler(CommandHandler("clearwarn", clear_warning))
-app.add_handler(CommandHandler("ban", ban))
-app.add_handler(CommandHandler("kick", kick))
-app.add_handler(CommandHandler("mute", mute))
+app.add_handler(
+    CommandHandler(
+        "profile",
+        profile_cmd
+    )
+)
 
 
+
+# مدیریت
+
+app.add_handler(
+    CommandHandler("warn", warn)
+)
+
+app.add_handler(
+    CommandHandler("clearwarn", clear_warning)
+)
+
+app.add_handler(
+    CommandHandler("ban", ban)
+)
+
+app.add_handler(
+    CommandHandler("kick", kick)
+)
+
+app.add_handler(
+    CommandHandler("mute", mute)
+)
+
+
+
+
+
+# قفل‌ها اول
 
 app.add_handler(
     MessageHandler(
@@ -267,6 +341,10 @@ app.add_handler(
 
 
 
+
+
+# منو
+
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
@@ -277,15 +355,23 @@ app.add_handler(
 
 
 
+
+
+# بررسی قفل محتوا آخر
+
 app.add_handler(
     MessageHandler(
         filters.ALL & ~filters.COMMAND,
         check_locks
     ),
-    group=2
+    group=10
 )
 
 
+
+
+
 print("🌻 iSectorLand Started")
+
 
 app.run_polling()
