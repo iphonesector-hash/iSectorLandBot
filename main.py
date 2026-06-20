@@ -69,10 +69,8 @@ async def menu_handler(update, context):
     if not update.message:
         return
 
+    text = clean_text(update.message.text)
 
-    text = clean_text(
-        update.message.text
-    )
 
 
     if text == "سرگرمی":
@@ -82,44 +80,29 @@ async def menu_handler(update, context):
             "😂 جوک\n"
             "🧠 چیستان\n"
             "🎲 تاس\n"
-            "🪙 شیر یا خط\n"
-            "📌 فکت"
+            "🪙 شیر یا خط"
         )
 
 
     elif text == "جوک":
 
-        await update.message.reply_text(
-            get_joke()
-        )
+        await update.message.reply_text(get_joke())
 
 
     elif text == "چیستان":
 
-        await update.message.reply_text(
-            riddle()
-        )
+        await update.message.reply_text(riddle())
 
 
     elif text == "تاس":
 
-        await update.message.reply_text(
-            dice()
-        )
+        await update.message.reply_text(dice())
 
 
     elif text == "شیر یا خط":
 
-        await update.message.reply_text(
-            coin()
-        )
+        await update.message.reply_text(coin())
 
-
-    elif text == "فکت":
-
-        await update.message.reply_text(
-            get_fact()
-        )
 
 
     elif text == "پروفایل":
@@ -133,10 +116,11 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             "🛡 مدیریت:\n\n"
             "ریپلای کن:\n"
+            "اخطار\n"
+            "پاک کردن اخطار\n"
             "بن\n"
             "کیک\n"
-            "سکوت\n"
-            "اخطار"
+            "سکوت"
         )
 
 
@@ -155,10 +139,9 @@ async def menu_handler(update, context):
     elif text == "قوانین":
 
         await update.message.reply_text(
-            "📜 قوانین:\n"
-            "احترام\n"
-            "بدون اسپم"
+            "📜 قوانین فعال است"
         )
+
 
 
     elif text == "پشتیبانی":
@@ -176,18 +159,11 @@ app = Application.builder().token(TOKEN).build()
 
 
 app.add_handler(
-    CommandHandler(
-        "start",
-        start
-    )
+    CommandHandler("start", start)
 )
 
-
 app.add_handler(
-    CommandHandler(
-        "profile",
-        profile_cmd
-    )
+    CommandHandler("profile", profile_cmd)
 )
 
 
@@ -196,10 +172,27 @@ app.add_handler(
 
 app.add_handler(
     MessageHandler(
+        filters.Regex("^اخطار$"),
+        warn
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^پاک کردن اخطار$"),
+        clear_warning
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
         filters.Regex("^بن$"),
         ban
     )
 )
+
 
 app.add_handler(
     MessageHandler(
@@ -208,17 +201,11 @@ app.add_handler(
     )
 )
 
+
 app.add_handler(
     MessageHandler(
         filters.Regex("^سکوت$"),
         mute
-    )
-)
-
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^اخطار$"),
-        warn
     )
 )
 
@@ -242,12 +229,14 @@ app.add_handler(
 )
 
 
+
 app.add_handler(
     MessageHandler(
         filters.Regex("^افزودن کلمه (.+)$"),
         add_word
     )
 )
+
 
 
 app.add_handler(
@@ -258,24 +247,8 @@ app.add_handler(
 )
 
 
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^افزودن فحش (.+)$"),
-        add_bad
-    )
-)
 
-
-app.add_handler(
-    MessageHandler(
-        filters.Regex("^لیست فحش$"),
-        bad_list
-    )
-)
-
-
-
-# اول منو
+# منو
 
 app.add_handler(
     MessageHandler(
@@ -287,7 +260,7 @@ app.add_handler(
 
 
 
-# آخر قفل
+# قفل‌ها آخر
 
 app.add_handler(
     MessageHandler(
