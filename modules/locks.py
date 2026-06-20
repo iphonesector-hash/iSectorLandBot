@@ -31,7 +31,6 @@ def save(data):
 def get_chat(chat_id):
 
     data = load()
-
     cid = str(chat_id)
 
 
@@ -41,13 +40,24 @@ def get_chat(chat_id):
             "bad_words": False,
             "words": False,
             "links": False,
-            "list": []
+            "list": [],
+            "bad_list": []
         }
 
         save(data)
 
 
     return data[cid]
+
+
+
+def save_chat(chat_id, cfg):
+
+    data = load()
+
+    data[str(chat_id)] = cfg
+
+    save(data)
 
 
 
@@ -59,10 +69,7 @@ async def lock_bad(update, context):
 
     cfg["bad_words"] = True
 
-    data = load()
-    data[str(update.effective_chat.id)] = cfg
-    save(data)
-
+    save_chat(update.effective_chat.id, cfg)
 
     await update.message.reply_text(
         "🔒 قفل فحش فعال شد"
@@ -76,13 +83,90 @@ async def unlock_bad(update, context):
 
     cfg["bad_words"] = False
 
-    data = load()
-    data[str(update.effective_chat.id)] = cfg
-    save(data)
-
+    save_chat(update.effective_chat.id, cfg)
 
     await update.message.reply_text(
         "🔓 قفل فحش خاموش شد"
+    )
+
+
+
+# افزودن فحش
+
+async def add_bad(update, context):
+
+    text = update.message.text
+
+    word = text.replace(
+        "افزودن فحش",
+        ""
+    ).strip()
+
+
+    if not word:
+        return
+
+
+    cfg = get_chat(update.effective_chat.id)
+
+
+    if word not in cfg["bad_list"]:
+
+        cfg["bad_list"].append(word)
+
+
+    save_chat(update.effective_chat.id, cfg)
+
+
+    await update.message.reply_text(
+        f"✅ فحش ذخیره شد:\n{word}"
+    )
+
+
+
+async def remove_bad(update, context):
+
+    text = update.message.text
+
+    word = text.replace(
+        "حذف فحش",
+        ""
+    ).strip()
+
+
+    cfg = get_chat(update.effective_chat.id)
+
+
+    if word in cfg["bad_list"]:
+
+        cfg["bad_list"].remove(word)
+
+
+    save_chat(update.effective_chat.id, cfg)
+
+
+    await update.message.reply_text(
+        "🗑 حذف شد"
+    )
+
+
+
+async def bad_list(update, context):
+
+    cfg = get_chat(update.effective_chat.id)
+
+
+    if not cfg["bad_list"]:
+
+        await update.message.reply_text(
+            "📋 لیست فحش خالیه"
+        )
+        return
+
+
+    await update.message.reply_text(
+        "📋 فحش‌ها:\n\n" +
+        "\n".join(cfg["bad_list"])
     )
 
 
@@ -95,10 +179,7 @@ async def lock_words(update, context):
 
     cfg["words"] = True
 
-    data = load()
-    data[str(update.effective_chat.id)] = cfg
-    save(data)
-
+    save_chat(update.effective_chat.id, cfg)
 
     await update.message.reply_text(
         "🔒 قفل کلمات فعال شد"
@@ -112,49 +193,10 @@ async def unlock_words(update, context):
 
     cfg["words"] = False
 
-    data = load()
-    data[str(update.effective_chat.id)] = cfg
-    save(data)
-
+    save_chat(update.effective_chat.id, cfg)
 
     await update.message.reply_text(
         "🔓 قفل کلمات خاموش شد"
-    )
-
-
-
-# لینک
-
-async def lock_links(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["links"] = True
-
-    data = load()
-    data[str(update.effective_chat.id)] = cfg
-    save(data)
-
-
-    await update.message.reply_text(
-        "🔒 قفل لینک فعال شد"
-    )
-
-
-
-async def unlock_links(update, context):
-
-    cfg = get_chat(update.effective_chat.id)
-
-    cfg["links"] = False
-
-    data = load()
-    data[str(update.effective_chat.id)] = cfg
-    save(data)
-
-
-    await update.message.reply_text(
-        "🔓 قفل لینک خاموش شد"
     )
 
 
@@ -172,44 +214,25 @@ async def add_word(update, context):
 
 
     if not word:
-
-        await update.message.reply_text(
-            "مثال:\nافزودن کلمه تست"
-        )
         return
 
 
-
-    data = load()
-
-    cid = str(update.effective_chat.id)
+    cfg = get_chat(update.effective_chat.id)
 
 
-    if cid not in data:
+    if word not in cfg["list"]:
 
-        data[cid] = {
-            "bad_words": False,
-            "words": False,
-            "links": False,
-            "list": []
-        }
+        cfg["list"].append(word)
 
 
-    if word not in data[cid]["list"]:
-
-        data[cid]["list"].append(word)
-
-
-    save(data)
+    save_chat(update.effective_chat.id, cfg)
 
 
     await update.message.reply_text(
-        f"✅ کلمه ذخیره شد:\n{word}"
+        f"✅ ذخیره شد:\n{word}"
     )
 
 
-
-# حذف کلمه
 
 async def remove_word(update, context):
 
@@ -221,34 +244,26 @@ async def remove_word(update, context):
     ).strip()
 
 
-    data = load()
-
-    cid = str(update.effective_chat.id)
+    cfg = get_chat(update.effective_chat.id)
 
 
-    if cid in data:
+    if word in cfg["list"]:
 
-        if word in data[cid]["list"]:
-
-            data[cid]["list"].remove(word)
+        cfg["list"].remove(word)
 
 
-    save(data)
+    save_chat(update.effective_chat.id, cfg)
 
 
     await update.message.reply_text(
-        f"🗑 حذف شد:\n{word}"
+        "🗑 حذف شد"
     )
 
 
-
-# لیست
 
 async def words_list(update, context):
 
-    cfg = get_chat(
-        update.effective_chat.id
-    )
+    cfg = get_chat(update.effective_chat.id)
 
 
     if not cfg["list"]:
@@ -259,11 +274,39 @@ async def words_list(update, context):
         return
 
 
+    await update.message.reply_text(
+        "📋 کلمات:\n\n" +
+        "\n".join(cfg["list"])
+    )
+
+
+
+# لینک
+
+async def lock_links(update, context):
+
+    cfg = get_chat(update.effective_chat.id)
+
+    cfg["links"] = True
+
+    save_chat(update.effective_chat.id, cfg)
 
     await update.message.reply_text(
-        "📋 کلمات فیلتر:\n\n"
-        +
-        "\n".join(cfg["list"])
+        "🔒 قفل لینک فعال شد"
+    )
+
+
+
+async def unlock_links(update, context):
+
+    cfg = get_chat(update.effective_chat.id)
+
+    cfg["links"] = False
+
+    save_chat(update.effective_chat.id, cfg)
+
+    await update.message.reply_text(
+        "🔓 قفل لینک خاموش شد"
     )
 
 
@@ -275,17 +318,25 @@ async def check_locks(update, context):
     if not update.message:
         return
 
-
     if not update.message.text:
         return
 
 
     text = update.message.text
 
+    cfg = get_chat(update.effective_chat.id)
 
-    cfg = get_chat(
-        update.effective_chat.id
-    )
+
+
+    if cfg["bad_words"]:
+
+        for w in cfg["bad_list"]:
+
+            if w in text:
+
+                await update.message.delete()
+                return
+
 
 
     if cfg["words"]:
@@ -295,7 +346,6 @@ async def check_locks(update, context):
             if w in text:
 
                 await update.message.delete()
-
                 return
 
 
@@ -305,5 +355,4 @@ async def check_locks(update, context):
         if "http://" in text or "https://" in text:
 
             await update.message.delete()
-
             return
