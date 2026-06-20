@@ -60,11 +60,12 @@ async def profile_cmd(update, context):
 
 
 
-# تست و دستورات قفل
+# ---------- قفل‌ها ----------
 
 async def lock_handler(update, context):
 
     text = update.message.text.strip()
+
 
     if text == "قفل لینک":
         await lock_link(update, context)
@@ -72,11 +73,13 @@ async def lock_handler(update, context):
     elif text == "حذف قفل لینک":
         await unlock_link(update, context)
 
+
     elif text == "قفل فوروارد":
         await lock_forward(update, context)
 
     elif text == "حذف قفل فوروارد":
         await unlock_forward(update, context)
+
 
     elif text == "قفل یوزرنیم":
         await lock_username(update, context)
@@ -84,11 +87,13 @@ async def lock_handler(update, context):
     elif text == "حذف قفل یوزرنیم":
         await unlock_username(update, context)
 
+
     elif text == "قفل عکس":
         await lock_photo(update, context)
 
     elif text == "حذف قفل عکس":
         await unlock_photo(update, context)
+
 
     elif text == "قفل ویدیو":
         await lock_video(update, context)
@@ -96,11 +101,13 @@ async def lock_handler(update, context):
     elif text == "حذف قفل ویدیو":
         await unlock_video(update, context)
 
+
     elif text == "قفل فایل":
         await lock_file(update, context)
 
     elif text == "حذف قفل فایل":
         await unlock_file(update, context)
+
 
     elif text == "قفل استیکر":
         await lock_sticker(update, context)
@@ -159,11 +166,19 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             "🔒 قفل‌ها:\n\n"
             "قفل لینک\n"
-            "حذف قفل لینک\n"
+            "حذف قفل لینک\n\n"
             "قفل فوروارد\n"
-            "حذف قفل فوروارد\n"
+            "حذف قفل فوروارد\n\n"
             "قفل یوزرنیم\n"
-            "حذف قفل یوزرنیم"
+            "حذف قفل یوزرنیم\n\n"
+            "قفل عکس\n"
+            "حذف قفل عکس\n\n"
+            "قفل ویدیو\n"
+            "حذف قفل ویدیو\n\n"
+            "قفل فایل\n"
+            "حذف قفل فایل\n\n"
+            "قفل استیکر\n"
+            "حذف قفل استیکر"
         )
 
 
@@ -184,7 +199,7 @@ app.add_handler(
 
 
 
-# اول قفل‌ها
+# قفل‌ها اول
 
 app.add_handler(
     MessageHandler(
@@ -198,35 +213,14 @@ app.add_handler(
 
 
 
-# تست اینکه پیام می‌رسه
-
-async def test_message(update, context):
-
-    if update.message.text == "تست":
-
-        await update.message.reply_text(
-            "ربات پیام گرفت"
-        )
-
-
-app.add_handler(
-    MessageHandler(
-        filters.TEXT,
-        test_message
-    ),
-    group=1
-)
-
-
-
-# قفل محتوا
+# بررسی قفل محتوا
 
 app.add_handler(
     MessageHandler(
         filters.ALL & ~filters.COMMAND,
         check_locks
     ),
-    group=2
+    group=1
 )
 
 
@@ -235,10 +229,10 @@ app.add_handler(
 
 app.add_handler(
     MessageHandler(
-        filters.TEXT,
+        filters.TEXT & ~filters.COMMAND,
         menu_handler
     ),
-    group=3
+    group=2
 )
 
 
