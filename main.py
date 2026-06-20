@@ -1,4 +1,4 @@
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -6,372 +6,303 @@ from telegram.ext import (
     filters
 )
 
-from modules.fun import *
-from modules.admin import (
-    warn,
-    clear_warning,
-    ban,
-    kick,
-    mute
+from modules.fun import (
+    get_joke, get_fact, get_motive,
+    get_text, dice, coin, riddle, rps, random_number
 )
-
-from modules.locks import *
-from modules.profile import *
-from modules.settings import *
-
+from modules.admin import (
+    warn, clear_warning, warns,
+    ban, unban, kick, mute, unmute
+)
+from modules.locks import (
+    lock_link, unlock_link,
+    lock_forward, unlock_forward,
+    lock_username, unlock_username,
+    lock_photo, unlock_photo,
+    lock_video, unlock_video,
+    lock_file, unlock_file,
+    lock_sticker, unlock_sticker,
+    check_locks
+)
+from modules.settings import (
+    settings_handler, toggle_setting,
+    set_welcome, welcome_new_member
+)
+from modules.profile import (
+    get_user, add_message,
+    profile_handler, leaderboard_handler
+)
+from modules.useful import (
+    useful_handler, weather, translate,
+    calculate, convert_unit
+)
 from config import TOKEN, BOT_NAME
 
 
-
-menu = [
+# ─── منوی اصلی ─────────────────────────────────────────
+main_menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
-    ["👤 پروفایل", "📜 قوانین"],
+    ["👤 پروفایل", "🏆 رتبه‌بندی"],
     ["⚙️ تنظیمات", "🆘 پشتیبانی"]
 ]
 
+fun_menu = [
+    ["😂 جوک", "🧠 فکت"],
+    ["💪 انگیزشی", "✨ متن"],
+    ["🎲 تاس", "🪙 شیر یا خط"],
+    ["🧩 چیستان", "✂️ سنگ کاغذ قیچی"],
+    ["🔙 برگشت"]
+]
+
+useful_menu = [
+    ["🌤 آب و هوا", "🌐 ترجمه"],
+    ["🔢 حساب‌گر", "📐 تبدیل واحد"],
+    ["🔙 برگشت"]
+]
+
+admin_menu = [
+    ["⚠️ راهنمای دستورات مدیریت"],
+    ["🔙 برگشت"]
+]
+
+lock_menu = [
+    ["قفل لینک", "حذف قفل لینک"],
+    ["قفل فوروارد", "حذف قفل فوروارد"],
+    ["قفل یوزرنیم", "حذف قفل یوزرنیم"],
+    ["قفل عکس", "حذف قفل عکس"],
+    ["قفل ویدیو", "حذف قفل ویدیو"],
+    ["قفل فایل", "حذف قفل فایل"],
+    ["قفل استیکر", "حذف قفل استیکر"],
+    ["🔙 برگشت"]
+]
+
+
+def main_kb():
+    return ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
+
+def fun_kb():
+    return ReplyKeyboardMarkup(fun_menu, resize_keyboard=True)
+
+def useful_kb():
+    return ReplyKeyboardMarkup(useful_menu, resize_keyboard=True)
+
+def admin_kb():
+    return ReplyKeyboardMarkup(admin_menu, resize_keyboard=True)
+
+def lock_kb():
+    return ReplyKeyboardMarkup(lock_menu, resize_keyboard=True)
 
 
 def clean(text):
-
     if not text:
         return ""
-
-    emojis = [
-        "🎮","🛠","🛡","🔒",
-        "👤","📜","⚙️","🆘"
-    ]
-
-    for e in emojis:
+    for e in ["🎮","🛠","🛡","🔒","👤","📜","⚙️","🆘","🏆",
+              "😂","🧠","💪","✨","🎲","🪙","🧩","✂️",
+              "🌤","🌐","🔢","📐","⚠️","🔙"]:
         text = text.replace(e, "")
-
     return text.strip()
 
 
+# ─── هندلرها ───────────────────────────────────────────
 
-
-
-async def start(update, context):
-
-    get_user(update.effective_user)
-
+async def start(update: Update, context):
+    user = update.effective_user
+    get_user(user)
     await update.message.reply_text(
-        f"{BOT_NAME}\n\n🌻 خوش اومدی",
-        reply_markup=ReplyKeyboardMarkup(
-            menu,
-            resize_keyboard=True
+        f"{BOT_NAME}\n\n👋 خوش اومدی <b>{user.first_name}</b>!",
+        reply_markup=main_kb(),
+        parse_mode="HTML"
+    )
+
+
+async def calc_cmd(update: Update, context):
+    if not context.args:
+        await update.message.reply_text(
+            "🔢 مثال: <code>/calc 25 * 4 + 10</code>",
+            parse_mode="HTML"
         )
-    )
+        return
+    expr = " ".join(context.args)
+    await update.message.reply_text(calculate(expr), parse_mode="HTML")
 
 
+async def convert_cmd(update: Update, context):
+    if not context.args:
+        await update.message.reply_text(
+            "📐 مثال: <code>/convert 100 km به m</code>",
+            parse_mode="HTML"
+        )
+        return
+    text = " ".join(context.args)
+    await update.message.reply_text(convert_unit(text), parse_mode="HTML")
 
 
-
-async def profile_cmd(update, context):
-
-    user = get_user(
-        update.effective_user
-    )
-
-    await update.message.reply_text(
-        f"👤 پروفایل\n\n"
-        f"نام: {user['name']}\n"
-        f"⭐ لول: {user['level']}\n"
-        f"🪙 سکه: {user['coins']}\n"
-        f"💎 VIP: {user['vip']}"
-    )
-
-
-
-
-
-async def lock_handler(update, context):
-
+async def lock_handler(update: Update, context):
     text = update.message.text.strip()
-
-
     cmds = {
-
         "قفل لینک": lock_link,
         "حذف قفل لینک": unlock_link,
-
         "قفل فوروارد": lock_forward,
         "حذف قفل فوروارد": unlock_forward,
-
         "قفل یوزرنیم": lock_username,
         "حذف قفل یوزرنیم": unlock_username,
-
         "قفل عکس": lock_photo,
         "حذف قفل عکس": unlock_photo,
-
         "قفل ویدیو": lock_video,
         "حذف قفل ویدیو": unlock_video,
-
         "قفل فایل": lock_file,
         "حذف قفل فایل": unlock_file,
-
         "قفل استیکر": lock_sticker,
-        "حذف قفل استیکر": unlock_sticker
+        "حذف قفل استیکر": unlock_sticker,
     }
-
-
     if text in cmds:
         await cmds[text](update, context)
 
 
+async def menu_handler(update: Update, context):
+    text = update.message.text.strip()
+    c = clean(text)
 
+    # ─── منوی اصلی ───
+    if c == "سرگرمی":
+        await update.message.reply_text("🎮 بخش سرگرمی:", reply_markup=fun_kb())
 
+    elif c == "کاربردی":
+        await update.message.reply_text("🛠 بخش کاربردی:", reply_markup=useful_kb())
 
-
-
-async def menu_handler(update, context):
-
-    text = clean(
-        update.message.text
-    )
-
-
-
-    if text == "سرگرمی":
-
+    elif c == "مدیریت":
         await update.message.reply_text(
-            "🎮 سرگرمی:\n\n"
-            "😂 جوک\n"
-            "📚 فکت\n"
-            "💪 انگیزشی\n"
-            "✨ متن\n"
-            "🎲 تاس\n"
-            "🪙 شیر یا خط\n"
-            "🧠 چیستان"
+            "🛡 <b>دستورات مدیریت</b>\n"
+            "─────────────────\n"
+            "⚠️ <code>/warn</code> — اخطار به کاربر\n"
+            "🧹 <code>/clearwarn</code> — پاک کردن اخطارها\n"
+            "📋 <code>/warns</code> — مشاهده اخطارها\n"
+            "🚫 <code>/ban</code> — بن کاربر\n"
+            "✅ <code>/unban</code> — آنبن کاربر\n"
+            "👢 <code>/kick</code> — کیک کاربر\n"
+            "🔇 <code>/mute</code> — سکوت کاربر\n"
+            "🔊 <code>/unmute</code> — آنمیوت کاربر\n\n"
+            "📌 روی پیام کاربر ریپلای کن، بعد دستور بده.",
+            reply_markup=admin_kb(),
+            parse_mode="HTML"
         )
 
+    elif c == "قفل‌ها":
+        await update.message.reply_text("🔒 مدیریت قفل‌ها:", reply_markup=lock_kb())
 
+    elif c == "پروفایل":
+        await profile_handler(update, context)
 
-    elif text == "جوک":
+    elif c == "رتبه‌بندی":
+        await leaderboard_handler(update, context)
+
+    elif c == "تنظیمات":
+        await settings_handler(update, context)
+
+    elif c == "پشتیبانی":
         await update.message.reply_text(
-            get_joke()
+            "🆘 <b>پشتیبانی</b>\n\n"
+            "برای گزارش مشکل یا پیشنهاد با سازنده تماس بگیر.",
+            parse_mode="HTML"
         )
 
+    elif c == "برگشت":
+        await update.message.reply_text("🏠 منوی اصلی:", reply_markup=main_kb())
 
-    elif text == "فکت":
+    # ─── منوی سرگرمی ───
+    elif c == "جوک":
+        await update.message.reply_text(get_joke())
+
+    elif c == "فکت":
+        await update.message.reply_text(get_fact())
+
+    elif c == "انگیزشی":
+        await update.message.reply_text(get_motive())
+
+    elif c == "متن":
+        await update.message.reply_text(get_text())
+
+    elif c == "تاس":
+        await update.message.reply_text(dice())
+
+    elif c == "شیر یا خط":
+        await update.message.reply_text(coin())
+
+    elif c == "چیستان":
+        await update.message.reply_text(riddle(), parse_mode="HTML")
+
+    elif c == "سنگ کاغذ قیچی":
         await update.message.reply_text(
-            get_fact()
+            "✂️ بنویس: سنگ، کاغذ یا قیچی"
         )
 
+    elif c in ["سنگ", "کاغذ", "قیچی"]:
+        await update.message.reply_text(rps(c))
 
-    elif text == "انگیزشی":
-        await update.message.reply_text(
-            get_motive()
-        )
+    # ─── منوی کاربردی ───
+    elif c in ["آب و هوا", "ترجمه", "حساب‌گر", "تبدیل واحد"]:
+        await useful_handler(update, context)
 
-
-    elif text == "متن":
-        await update.message.reply_text(
-            get_text()
-        )
-
-
-    elif text == "تاس":
-        await update.message.reply_text(
-            dice()
-        )
+    # ─── ردیابی پیام برای XP ───
+    else:
+        if update.effective_chat.type != "private":
+            add_message(update.effective_user)
 
 
-    elif text == "شیر یا خط":
-        await update.message.reply_text(
-            coin()
-        )
-
-
-    elif text == "چیستان":
-        await update.message.reply_text(
-            riddle()
-        )
-
-
-
-
-    elif text == "مدیریت":
-
-        await update.message.reply_text(
-            "🛡 مدیریت:\n\n"
-            "دستورات:\n\n"
-            "/warn\n"
-            "/clearwarn\n"
-            "/ban\n"
-            "/kick\n"
-            "/mute"
-        )
-
-
-
-
-    elif text == "قوانین":
-
-        await update.message.reply_text(
-            "📜 قوانین:\n\n"
-            "• اسپم ممنوع\n"
-            "• تبلیغات ممنوع\n"
-            "• بی احترامی ممنوع"
-        )
-
-
-
-
-    elif text == "کاربردی":
-
-        await update.message.reply_text(
-            "🛠 کاربردی:\n\n"
-            "بخش کاربردی فعال شد"
-        )
-
-
-
-
-    elif text == "تنظیمات":
-
-        await update.message.reply_text(
-            "⚙️ تنظیمات:\n\n"
-            "تنظیمات گروه از طریق ادمین انجام می‌شود"
-        )
-
-
-
-
-    elif text == "پشتیبانی":
-
-        await update.message.reply_text(
-            "🆘 پشتیبانی:\n\n"
-            "برای کمک پیام ارسال کنید"
-        )
-
-
-
-
-    elif text == "قفل‌ها":
-
-        await update.message.reply_text(
-            "🔒 قفل‌ها:\n\n"
-
-            "قفل لینک\n"
-            "حذف قفل لینک\n\n"
-
-            "قفل فوروارد\n"
-            "حذف قفل فوروارد\n\n"
-
-            "قفل یوزرنیم\n"
-            "حذف قفل یوزرنیم\n\n"
-
-            "قفل عکس\n"
-            "حذف قفل عکس\n\n"
-
-            "قفل ویدیو\n"
-            "حذف قفل ویدیو\n\n"
-
-            "قفل فایل\n"
-            "حذف قفل فایل\n\n"
-
-            "قفل استیکر\n"
-            "حذف قفل استیکر"
-        )
-
-
-
-
-
-
+# ─── راه‌اندازی ربات ───────────────────────────────────
 app = Application.builder().token(TOKEN).build()
 
+# دستورات
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("profile", profile_handler))
+app.add_handler(CommandHandler("top", leaderboard_handler))
+app.add_handler(CommandHandler("warn", warn))
+app.add_handler(CommandHandler("clearwarn", clear_warning))
+app.add_handler(CommandHandler("warns", warns))
+app.add_handler(CommandHandler("ban", ban))
+app.add_handler(CommandHandler("unban", unban))
+app.add_handler(CommandHandler("kick", kick))
+app.add_handler(CommandHandler("mute", mute))
+app.add_handler(CommandHandler("unmute", unmute))
+app.add_handler(CommandHandler("weather", weather))
+app.add_handler(CommandHandler("translate", translate))
+app.add_handler(CommandHandler("calc", calc_cmd))
+app.add_handler(CommandHandler("convert", convert_cmd))
+app.add_handler(CommandHandler("toggle", toggle_setting))
+app.add_handler(CommandHandler("setwelcome", set_welcome))
 
-
-app.add_handler(
-    CommandHandler(
-        "start",
-        start
-    )
-)
-
-
-app.add_handler(
-    CommandHandler(
-        "profile",
-        profile_cmd
-    )
-)
-
-
-
-# مدیریت
-
-app.add_handler(
-    CommandHandler("warn", warn)
-)
-
-app.add_handler(
-    CommandHandler("clearwarn", clear_warning)
-)
-
-app.add_handler(
-    CommandHandler("ban", ban)
-)
-
-app.add_handler(
-    CommandHandler("kick", kick)
-)
-
-app.add_handler(
-    CommandHandler("mute", mute)
-)
-
-
-
-
-
-# قفل‌ها اول
-
+# قفل‌ها (group=0 اول اجرا میشه)
 app.add_handler(
     MessageHandler(
         filters.Regex(
-            "^(قفل لینک|حذف قفل لینک|قفل فوروارد|حذف قفل فوروارد|قفل یوزرنیم|حذف قفل یوزرنیم|قفل عکس|حذف قفل عکس|قفل ویدیو|حذف قفل ویدیو|قفل فایل|حذف قفل فایل|قفل استیکر|حذف قفل استیکر)$"
+            r"^(قفل لینک|حذف قفل لینک|قفل فوروارد|حذف قفل فوروارد|"
+            r"قفل یوزرنیم|حذف قفل یوزرنیم|قفل عکس|حذف قفل عکس|"
+            r"قفل ویدیو|حذف قفل ویدیو|قفل فایل|حذف قفل فایل|"
+            r"قفل استیکر|حذف قفل استیکر)$"
         ),
         lock_handler
     ),
     group=0
 )
 
-
-
-
-
-# منو
-
+# عضو جدید
 app.add_handler(
-    MessageHandler(
-        filters.TEXT & ~filters.COMMAND,
-        menu_handler
-    ),
+    MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member),
+    group=0
+)
+
+# منوی اصلی
+app.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, menu_handler),
     group=1
 )
 
-
-
-
-
-# بررسی قفل محتوا آخر
-
+# چک قفل‌ها (group=2 آخر اجرا میشه)
 app.add_handler(
-    MessageHandler(
-        filters.ALL & ~filters.COMMAND,
-        check_locks
-    ),
-    group=10
+    MessageHandler(filters.ALL & ~filters.COMMAND, check_locks),
+    group=2
 )
 
-
-
-
-
-print("🌻 iSectorLand Started")
-
-
+print(f"✅ {BOT_NAME} Started!")
 app.run_polling()
