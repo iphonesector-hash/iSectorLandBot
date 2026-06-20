@@ -68,6 +68,7 @@ async def menu_handler(update, context):
 
 
     if text == "🎮 سرگرمی":
+
         await update.message.reply_text(
             "🎮 سرگرمی:\n\n"
             "😂 جوک\n"
@@ -78,27 +79,28 @@ async def menu_handler(update, context):
 
 
     elif text == "😂 جوک":
+
         await update.message.reply_text(get_joke())
 
 
     elif text == "🧠 چیستان":
+
         await update.message.reply_text(riddle())
 
 
     elif text == "🎲 تاس":
+
         await update.message.reply_text(dice())
 
 
-    elif text == "🪙 شیر یا خط":
-        await update.message.reply_text(coin())
-
-
     elif text == "👤 پروفایل":
+
         await profile_cmd(update, context)
 
 
 
     elif text == "🛡 مدیریت":
+
         await update.message.reply_text(
             "🛡 مدیریت:\n\n"
             "اخطار\n"
@@ -110,16 +112,16 @@ async def menu_handler(update, context):
 
 
     elif text == "🔒 قفل‌ها":
+
         await update.message.reply_text(
             "🔒 قفل‌ها:\n\n"
             "قفل فحش\n"
             "حذف قفل فحش\n"
+            "افزودن فحش تست\n"
+            "حذف فحش تست\n"
+            "لیست فحش\n\n"
             "قفل کلمات\n"
-            "حذف قفل کلمات\n"
-            "قفل لینک\n"
-            "حذف قفل لینک\n\n"
             "افزودن کلمه تست\n"
-            "حذف کلمه تست\n"
             "لیست کلمات"
         )
 
@@ -153,20 +155,64 @@ app.add_handler(CommandHandler("profile", profile_cmd))
 
 
 
-# قفل‌ها
+# قفل فحش
 
-app.add_handler(MessageHandler(filters.Regex("^قفل فحش$"), lock_bad))
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad))
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^قفل فحش$"),
+        lock_bad
+    )
+)
 
-app.add_handler(MessageHandler(filters.Regex("^قفل کلمات$"), lock_words))
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل کلمات$"), unlock_words))
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^حذف قفل فحش$"),
+        unlock_bad
+    )
+)
 
-app.add_handler(MessageHandler(filters.Regex("^قفل لینک$"), lock_links))
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل لینک$"), unlock_links))
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^افزودن فحش (.+)$"),
+        add_bad
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^حذف فحش (.+)$"),
+        remove_bad
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^لیست فحش$"),
+        bad_list
+    )
+)
 
 
 
-# کلمات سفارشی
+# قفل کلمات
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^قفل کلمات$"),
+        lock_words
+    )
+)
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^حذف قفل کلمات$"),
+        unlock_words
+    )
+)
+
 
 app.add_handler(
     MessageHandler(
@@ -175,12 +221,14 @@ app.add_handler(
     )
 )
 
+
 app.add_handler(
     MessageHandler(
         filters.Regex("^حذف کلمه (.+)$"),
         remove_word
     )
 )
+
 
 app.add_handler(
     MessageHandler(
@@ -191,7 +239,25 @@ app.add_handler(
 
 
 
-# مدیریت گروه
+# لینک
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^قفل لینک$"),
+        lock_links
+    )
+)
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^حذف قفل لینک$"),
+        unlock_links
+    )
+)
+
+
+
+# مدیریت
 
 app.add_handler(MessageHandler(filters.Regex("^اخطار$"), warn))
 app.add_handler(MessageHandler(filters.Regex("^بن$"), ban))
@@ -200,14 +266,14 @@ app.add_handler(MessageHandler(filters.Regex("^سکوت$"), mute))
 
 
 
-# چک قفل پیام‌ها
+# بررسی قفل‌ها آخر اجرا شود
 
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         check_locks
     ),
-    group=1
+    group=2
 )
 
 
@@ -219,7 +285,7 @@ app.add_handler(
         filters.TEXT & ~filters.COMMAND,
         menu_handler
     ),
-    group=2
+    group=1
 )
 
 
