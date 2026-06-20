@@ -16,7 +16,6 @@ from modules.profile import *
 from config import TOKEN, BOT_NAME
 
 
-
 menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
@@ -35,7 +34,6 @@ async def start(update: Update, context):
         menu,
         resize_keyboard=True
     )
-
 
     await update.message.reply_text(
         f"{BOT_NAME}\n\n"
@@ -59,9 +57,7 @@ async def help_cmd(update, context):
 async def profile(update, context):
 
     user = update.effective_user
-
     info = get_user(user)
-
 
     await update.message.reply_text(
         "👤 پروفایل شما\n\n"
@@ -124,9 +120,7 @@ async def menu_handler(update, context):
         await update.message.reply_text(get_text())
 
 
-
     elif text == "👤 پروفایل":
-
         await profile(update,context)
 
 
@@ -149,11 +143,11 @@ async def menu_handler(update, context):
 
         await update.message.reply_text(
             "🛡 مدیریت:\n\n"
-            "ریپلای کن:\n"
-            "اخطار\n"
-            "بن\n"
-            "کیک\n"
-            "سکوت"
+            "با ریپلای:\n\n"
+            "⚠️ اخطار\n"
+            "🚫 بن\n"
+            "👢 کیک\n"
+            "🔇 سکوت"
         )
 
 
@@ -187,9 +181,9 @@ async def menu_handler(update, context):
 
         await update.message.reply_text(
             "📜 قوانین:\n\n"
-            "1 احترام\n"
-            "2 بدون اسپم\n"
-            "3 بدون تبلیغ"
+            "1️⃣ احترام\n"
+            "2️⃣ بدون اسپم\n"
+            "3️⃣ بدون تبلیغ"
         )
 
 
@@ -202,25 +196,36 @@ async def menu_handler(update, context):
 
 
 
+
+
 app = Application.builder().token(TOKEN).build()
 
 
 
-app.add_handler(CommandHandler("start",start))
-app.add_handler(CommandHandler("help",help_cmd))
-app.add_handler(CommandHandler("profile",profile))
+# دستورات
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("help", help_cmd))
+app.add_handler(CommandHandler("profile", profile))
 
 
-# مدیریت
-app.add_handler(MessageHandler(filters.Regex("^اخطار$"),warn))
-app.add_handler(MessageHandler(filters.Regex("^پاک کردن اخطار$"),clear_warn))
-app.add_handler(MessageHandler(filters.Regex("^بن$"),ban))
-app.add_handler(MessageHandler(filters.Regex("^کیک$"),kick))
-app.add_handler(MessageHandler(filters.Regex("^سکوت$"),mute))
-
+# مدیریت گروه
+app.add_handler(MessageHandler(filters.Regex("^اخطار$"), warn))
+app.add_handler(MessageHandler(filters.Regex("^پاک کردن اخطار$"), clear_warn))
+app.add_handler(MessageHandler(filters.Regex("^بن$"), ban))
+app.add_handler(MessageHandler(filters.Regex("^کیک$"), kick))
+app.add_handler(MessageHandler(filters.Regex("^سکوت$"), mute))
 
 
 # قفل‌ها
+app.add_handler(MessageHandler(filters.Regex("^قفل فحش$"), lock_bad))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad))
+app.add_handler(MessageHandler(filters.Regex("^قفل کلمات$"), lock_words))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل کلمات$"), unlock_words))
+app.add_handler(MessageHandler(filters.Regex("^قفل لینک$"), lock_links))
+app.add_handler(MessageHandler(filters.Regex("^حذف قفل لینک$"), unlock_links))
+
+
+# بررسی پیام‌ها
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
@@ -229,15 +234,7 @@ app.add_handler(
 )
 
 
-app.add_handler(MessageHandler(filters.Regex("^قفل فحش$"),lock_bad))
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل فحش$"),unlock_bad))
-app.add_handler(MessageHandler(filters.Regex("^قفل کلمات$"),lock_words))
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل کلمات$"),unlock_words))
-app.add_handler(MessageHandler(filters.Regex("^قفل لینک$"),lock_links))
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل لینک$"),unlock_links))
-
-
-
+# منو
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
@@ -246,8 +243,6 @@ app.add_handler(
 )
 
 
-
 print("🌻 iSectorLand Started")
-
 
 app.run_polling()
