@@ -9,18 +9,19 @@ from telegram.ext import (
 
 from modules.fun import *
 from modules.admin import *
+from modules.locks import *
 from config import TOKEN, BOT_NAME
 
 
 menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
-    ["🛡 مدیریت", "👤 پروفایل"],
+    ["🛡 مدیریت", "🔒 قفل‌ها"],
     ["📜 قوانین", "⚙️ تنظیمات"],
     ["🆘 پشتیبانی"]
 ]
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def start(update: Update, context):
 
     keyboard = ReplyKeyboardMarkup(
         menu,
@@ -30,7 +31,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         f"{BOT_NAME}\n\n"
         "خوش اومدی 🌻\n"
-        "یکی از گزینه‌ها رو انتخاب کن 👇",
+        "یک گزینه انتخاب کن 👇",
         reply_markup=keyboard
     )
 
@@ -50,6 +51,7 @@ async def menu_handler(update: Update, context):
 
 
     if text == "🎮 سرگرمی":
+
         await update.message.reply_text(
             "🎮 سرگرمی‌ها:\n\n"
             "😂 جوک\n"
@@ -91,18 +93,20 @@ async def menu_handler(update: Update, context):
 
 
     elif text == "🛠 کاربردی":
+
         await update.message.reply_text(
             "🛠 کاربردی:\n\n"
             "📅 تاریخ\n"
             "⏰ ساعت\n"
             "🌦 هواشناسی\n"
-            "💵 ارز\n"
-            "🥇 طلا\n"
-            "🚗 خودرو"
+            "💵 قیمت ارز\n"
+            "🥇 قیمت طلا\n"
+            "🚗 قیمت خودرو"
         )
 
 
     elif text == "🛡 مدیریت":
+
         await update.message.reply_text(
             "🛡 مدیریت گروه:\n\n"
             "روی پیام ریپلای کن:\n\n"
@@ -114,24 +118,31 @@ async def menu_handler(update: Update, context):
         )
 
 
+    elif text == "🔒 قفل‌ها":
+
+        await update.message.reply_text(
+            "🔒 قفل‌ها:\n\n"
+            "قفل فحش\n"
+            "حذف قفل فحش\n"
+            "قفل کلمات\n"
+            "حذف قفل کلمات"
+        )
+
+
     elif text == "📜 قوانین":
+
         await update.message.reply_text(
             "📜 قوانین:\n\n"
-            "1- احترام\n"
-            "2- بدون اسپم\n"
-            "3- بدون تبلیغ"
+            "1️⃣ احترام\n"
+            "2️⃣ بدون اسپم\n"
+            "3️⃣ بدون تبلیغ"
         )
 
 
     elif text == "🆘 پشتیبانی":
+
         await update.message.reply_text(
             "🆘 پشتیبانی iSectorLand"
-        )
-
-
-    else:
-        await update.message.reply_text(
-            "این بخش بزودی اضافه میشه 🔥"
         )
 
 
@@ -148,7 +159,7 @@ app.add_handler(
 )
 
 
-# مدیریت گروه
+# مدیریت
 app.add_handler(
     MessageHandler(filters.Regex("^اخطار$"), warn)
 )
@@ -170,8 +181,37 @@ app.add_handler(
 )
 
 
+# قفل ها
 app.add_handler(
-    MessageHandler(filters.TEXT, menu_handler)
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        check_message
+    )
+)
+
+
+app.add_handler(
+    MessageHandler(filters.Regex("^قفل فحش$"), lock_bad)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^قفل کلمات$"), lock_words)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^حذف قفل کلمات$"), unlock_words)
+)
+
+
+app.add_handler(
+    MessageHandler(
+        filters.TEXT,
+        menu_handler
+    )
 )
 
 
