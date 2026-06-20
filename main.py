@@ -9,8 +9,8 @@ from telegram.ext import (
 from modules.fun import *
 from modules.admin import *
 from modules.locks import *
-from modules.profile import *
 from modules.settings import *
+from modules.profile import *
 
 from config import TOKEN, BOT_NAME
 
@@ -25,17 +25,17 @@ menu = [
 
 
 
-def clean_text(text):
+def clean(text):
 
     if not text:
         return ""
 
-    for e in [
+    for x in [
         "🎮","🛠","🛡","🔒",
         "👤","📜","⚙️","🆘",
         "😂","🧠","🎲","🪙"
     ]:
-        text = text.replace(e,"")
+        text = text.replace(x,"")
 
     return text.strip()
 
@@ -55,19 +55,68 @@ async def start(update, context):
 
 
 
-async def profile_cmd(update, context):
-    await profile(update, context)
+async def profile_cmd(update,context):
+
+    await profile(update,context)
+
+
+
+# ---------- قفل‌ها ----------
+
+async def lock_commands(update, context):
+
+    text = update.message.text
+
+
+    if text == "قفل لینک":
+        await lock_link(update,context)
+
+    elif text == "حذف قفل لینک":
+        await unlock_link(update,context)
+
+    elif text == "قفل فوروارد":
+        await lock_forward(update,context)
+
+    elif text == "حذف قفل فوروارد":
+        await unlock_forward(update,context)
+
+    elif text == "قفل یوزرنیم":
+        await lock_username(update,context)
+
+    elif text == "حذف قفل یوزرنیم":
+        await unlock_username(update,context)
+
+    elif text == "قفل عکس":
+        await lock_photo(update,context)
+
+    elif text == "حذف قفل عکس":
+        await unlock_photo(update,context)
+
+    elif text == "قفل ویدیو":
+        await lock_video(update,context)
+
+    elif text == "حذف قفل ویدیو":
+        await unlock_video(update,context)
+
+    elif text == "قفل فایل":
+        await lock_file(update,context)
+
+    elif text == "حذف قفل فایل":
+        await unlock_file(update,context)
+
+    elif text == "قفل استیکر":
+        await lock_sticker(update,context)
+
+    elif text == "حذف قفل استیکر":
+        await unlock_sticker(update,context)
 
 
 
 
 
-async def menu_handler(update, context):
+async def menu_handler(update,context):
 
-    if not update.message:
-        return
-
-    text = clean_text(update.message.text)
+    text = clean(update.message.text)
 
 
 
@@ -81,14 +130,18 @@ async def menu_handler(update, context):
             "🪙 شیر یا خط"
         )
 
+
     elif text == "جوک":
         await update.message.reply_text(get_joke())
+
 
     elif text == "چیستان":
         await update.message.reply_text(riddle())
 
+
     elif text == "تاس":
         await update.message.reply_text(dice())
+
 
     elif text == "شیر یا خط":
         await update.message.reply_text(coin())
@@ -115,36 +168,20 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             "🔒 قفل‌ها:\n\n"
             "قفل لینک\n"
-            "حذف قفل لینک\n\n"
+            "حذف قفل لینک\n"
             "قفل فوروارد\n"
-            "حذف قفل فوروارد\n\n"
+            "حذف قفل فوروارد\n"
             "قفل یوزرنیم\n"
-            "حذف قفل یوزرنیم\n\n"
+            "حذف قفل یوزرنیم\n"
             "قفل عکس\n"
-            "حذف قفل عکس\n\n"
+            "حذف قفل عکس\n"
             "قفل ویدیو\n"
-            "حذف قفل ویدیو\n\n"
+            "حذف قفل ویدیو\n"
             "قفل فایل\n"
-            "حذف قفل فایل\n\n"
+            "حذف قفل فایل\n"
             "قفل استیکر\n"
             "حذف قفل استیکر"
         )
-
-
-    elif text == "قوانین":
-
-        await update.message.reply_text(
-            "📜 قوانین فعال است"
-        )
-
-
-    elif text == "پشتیبانی":
-
-        await update.message.reply_text(
-            "🆘 پشتیبانی iSectorLand"
-        )
-
-
 
 
 
@@ -152,49 +189,41 @@ app = Application.builder().token(TOKEN).build()
 
 
 
-app.add_handler(CommandHandler("start",start))
-app.add_handler(CommandHandler("profile",profile_cmd))
+app.add_handler(
+    CommandHandler("start",start)
+)
+
+app.add_handler(
+    CommandHandler("profile",profile_cmd)
+)
 
 
 
-# قفل‌ها اول
+# قفل‌ها بالاتر از همه
 
-app.add_handler(MessageHandler(filters.Regex("^قفل لینک$"),lock_link),group=0)
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل لینک$"),unlock_link),group=0)
-
-app.add_handler(MessageHandler(filters.Regex("^قفل فوروارد$"),lock_forward),group=0)
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل فوروارد$"),unlock_forward),group=0)
-
-app.add_handler(MessageHandler(filters.Regex("^قفل یوزرنیم$"),lock_username),group=0)
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل یوزرنیم$"),unlock_username),group=0)
-
-app.add_handler(MessageHandler(filters.Regex("^قفل عکس$"),lock_photo),group=0)
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل عکس$"),unlock_photo),group=0)
-
-app.add_handler(MessageHandler(filters.Regex("^قفل ویدیو$"),lock_video),group=0)
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل ویدیو$"),unlock_video),group=0)
-
-app.add_handler(MessageHandler(filters.Regex("^قفل فایل$"),lock_file),group=0)
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل فایل$"),unlock_file),group=0)
-
-app.add_handler(MessageHandler(filters.Regex("^قفل استیکر$"),lock_sticker),group=0)
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل استیکر$"),unlock_sticker),group=0)
-
+app.add_handler(
+    MessageHandler(
+        filters.Regex(
+        "^(قفل لینک|حذف قفل لینک|قفل فوروارد|حذف قفل فوروارد|قفل یوزرنیم|حذف قفل یوزرنیم|قفل عکس|حذف قفل عکس|قفل ویدیو|حذف قفل ویدیو|قفل فایل|حذف قفل فایل|قفل استیکر|حذف قفل استیکر)$"
+        ),
+        lock_commands
+    ),
+    group=0
+)
 
 
 
 # مدیریت
 
 app.add_handler(MessageHandler(filters.Regex("^اخطار$"),warn))
-app.add_handler(MessageHandler(filters.Regex("^(پاک کردن اخطار|حذف اخطار)$"),clear_warning))
+app.add_handler(MessageHandler(filters.Regex("^(پاک کردن اخطار|حذف اخطار)$"),clear_warn))
 app.add_handler(MessageHandler(filters.Regex("^بن$"),ban))
 app.add_handler(MessageHandler(filters.Regex("^کیک$"),kick))
 app.add_handler(MessageHandler(filters.Regex("^سکوت$"),mute))
 
 
 
-
-# چک قفل محتوا
+# قفل محتوا
 
 app.add_handler(
     MessageHandler(
@@ -206,13 +235,11 @@ app.add_handler(
 
 
 
-# فقط منوی خودش
+# منو آخر
 
 app.add_handler(
     MessageHandler(
-        filters.Regex(
-        "^(🎮 سرگرمی|سرگرمی|😂 جوک|جوک|🧠 چیستان|چیستان|🎲 تاس|تاس|🪙 شیر یا خط|شیر یا خط|🛡 مدیریت|مدیریت|🔒 قفل‌ها|قفل‌ها|👤 پروفایل|پروفایل|📜 قوانین|قوانین|⚙️ تنظیمات|تنظیمات|🆘 پشتیبانی|پشتیبانی)$"
-        ),
+        filters.TEXT & ~filters.COMMAND,
         menu_handler
     ),
     group=2
