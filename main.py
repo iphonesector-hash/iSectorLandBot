@@ -3,15 +3,14 @@ from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
-    ContextTypes,
     filters
 )
 
 from modules.fun import *
 from modules.admin import *
 from modules.locks import *
-from modules.settings import *
 from modules.profile import *
+from modules.settings import *
 
 from config import TOKEN, BOT_NAME
 
@@ -23,6 +22,20 @@ menu = [
     ["👤 پروفایل", "📜 قوانین"],
     ["⚙️ تنظیمات", "🆘 پشتیبانی"]
 ]
+
+
+
+def clean(text):
+
+    emojis = [
+        "🎮","🛠","🛡","🔒",
+        "👤","📜","⚙️","🆘"
+    ]
+
+    for e in emojis:
+        text = text.replace(e, "")
+
+    return text.strip()
 
 
 
@@ -42,14 +55,7 @@ async def start(update, context):
 
 async def profile_cmd(update, context):
 
-    info = get_user(update.effective_user)
-
-    await update.message.reply_text(
-        f"👤 پروفایل\n\n"
-        f"نام: {info['name']}\n"
-        f"سطح: {info['level']}\n"
-        f"سکه: {info['coins']}"
-    )
+    await profile(update, context)
 
 
 
@@ -59,11 +65,11 @@ async def menu_handler(update, context):
         return
 
 
-    text = update.message.text
+    text = clean(update.message.text)
 
 
 
-    if text == "🎮 سرگرمی":
+    if text == "سرگرمی":
 
         await update.message.reply_text(
             "🎮 سرگرمی:\n\n"
@@ -74,48 +80,55 @@ async def menu_handler(update, context):
         )
 
 
+    elif text == "جوک":
 
-    elif text == "😂 جوک":
-
-        await update.message.reply_text(get_joke())
-
-
-    elif text == "🧠 چیستان":
-
-        await update.message.reply_text(riddle())
+        await update.message.reply_text(
+            get_joke()
+        )
 
 
-    elif text == "🎲 تاس":
+    elif text == "چیستان":
 
-        await update.message.reply_text(dice())
-
-
-    elif text == "🪙 شیر یا خط":
-
-        await update.message.reply_text(coin())
+        await update.message.reply_text(
+            riddle()
+        )
 
 
+    elif text == "تاس":
 
-    elif text == "👤 پروفایل":
+        await update.message.reply_text(
+            dice()
+        )
+
+
+    elif text == "شیر یا خط":
+
+        await update.message.reply_text(
+            coin()
+        )
+
+
+
+    elif text == "پروفایل":
 
         await profile_cmd(update, context)
 
 
 
-    elif text == "🛡 مدیریت":
+    elif text == "مدیریت":
 
         await update.message.reply_text(
             "🛡 مدیریت:\n\n"
             "ریپلای کن:\n"
-            "اخطار\n"
             "بن\n"
             "کیک\n"
-            "سکوت"
+            "سکوت\n"
+            "اخطار"
         )
 
 
 
-    elif text == "🔒 قفل‌ها":
+    elif text == "قفل‌ها":
 
         await update.message.reply_text(
             "🔒 قفل‌ها:\n\n"
@@ -126,7 +139,7 @@ async def menu_handler(update, context):
 
 
 
-    elif text == "📜 قوانین":
+    elif text == "قوانین":
 
         await update.message.reply_text(
             "📜 قوانین فعال است"
@@ -134,7 +147,7 @@ async def menu_handler(update, context):
 
 
 
-    elif text == "🆘 پشتیبانی":
+    elif text == "پشتیبانی":
 
         await update.message.reply_text(
             "🆘 پشتیبانی iSectorLand"
@@ -142,67 +155,72 @@ async def menu_handler(update, context):
 
 
 
-
-
 app = Application.builder().token(TOKEN).build()
 
 
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("profile", profile_cmd))
+app.add_handler(
+    CommandHandler("start", start)
+)
+
+app.add_handler(
+    CommandHandler("profile", profile_cmd)
+)
 
 
 
-# مدیریت
+# مدیریت بدون حساسیت به ایموجی
 
-app.add_handler(MessageHandler(filters.Regex("^اخطار$"), warn))
-app.add_handler(MessageHandler(filters.Regex("^بن$"), ban))
-app.add_handler(MessageHandler(filters.Regex("^کیک$"), kick))
-app.add_handler(MessageHandler(filters.Regex("^سکوت$"), mute))
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^(🚫)?بن$"),
+        ban
+    )
+)
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^(👢)?کیک$"),
+        kick
+    )
+)
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^(🔇)?سکوت$"),
+        mute
+    )
+)
+
+app.add_handler(
+    MessageHandler(
+        filters.Regex("^(⚠️)?اخطار$"),
+        warn
+    )
+)
 
 
 
 # قفل‌ها
 
-app.add_handler(MessageHandler(filters.Regex("^قفل فحش$"), lock_bad))
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل فحش$"), unlock_bad))
-
-app.add_handler(MessageHandler(filters.Regex("^قفل کلمات$"), lock_words))
-app.add_handler(MessageHandler(filters.Regex("^حذف قفل کلمات$"), unlock_words))
-
-app.add_handler(MessageHandler(filters.Regex("^افزودن کلمه (.+)$"), add_word))
-app.add_handler(MessageHandler(filters.Regex("^لیست کلمات$"), words_list))
-
-app.add_handler(MessageHandler(filters.Regex("^افزودن فحش (.+)$"), add_bad))
-app.add_handler(MessageHandler(filters.Regex("^لیست فحش$"), bad_list))
+app.add_handler(
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        check_locks
+    )
+)
 
 
-
-# اول منو
 
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         menu_handler
-    ),
-    group=1
-)
-
-
-
-# آخر قفل‌ها
-
-app.add_handler(
-    MessageHandler(
-        filters.TEXT & ~filters.COMMAND,
-        check_locks
-    ),
-    group=2
+    )
 )
 
 
 
 print("🌻 iSectorLand Started")
-
 
 app.run_polling()
