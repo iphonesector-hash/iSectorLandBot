@@ -27,6 +27,12 @@ def save(data):
 
 
 
+def get_data():
+
+    return load()
+
+
+
 def get_user_warn(chat_id, user_id):
 
     data = load()
@@ -39,8 +45,6 @@ def get_user_warn(chat_id, user_id):
 
     if user not in data[chat]:
         data[chat][user] = 0
-
-    save(data)
 
     return data
 
@@ -67,17 +71,14 @@ async def warn(update, context):
 
     data[str(chat.id)][str(user.id)] += 1
 
-
     count = data[str(chat.id)][str(user.id)]
-
 
     save(data)
 
 
-
     await update.message.reply_text(
         f"⚠️ اخطار ثبت شد\n\n"
-        f"👤 کاربر: {user.first_name}\n"
+        f"👤 {user.first_name}\n"
         f"🔢 تعداد: {count}/3"
     )
 
@@ -85,19 +86,16 @@ async def warn(update, context):
     if count >= 3:
 
         try:
-
-            await chat.ban_member(
-                user.id
-            )
+            await chat.ban_member(user.id)
 
             await update.message.reply_text(
-                "🚫 کاربر به دلیل ۳ اخطار بن شد"
+                "🚫 کاربر با ۳ اخطار بن شد"
             )
 
         except:
 
             await update.message.reply_text(
-                "❌ نتونستم بن کنم (ادمین نیستم)"
+                "❌ دسترسی بن ندارم"
             )
 
 
@@ -105,11 +103,12 @@ async def warn(update, context):
 async def clear_warn(update, context):
 
     if not update.message.reply_to_message:
+
         await update.message.reply_text(
             "🧹 روی پیام کاربر ریپلای کن"
         )
-        return
 
+        return
 
 
     user = update.message.reply_to_message.from_user
@@ -127,7 +126,12 @@ async def clear_warn(update, context):
     save(data)
 
 
-
     await update.message.reply_text(
         f"🧹 اخطارهای {user.first_name} پاک شد"
     )
+
+
+
+# سازگاری با admin.py قدیمی
+add_warn = warn
+remove_warn = clear_warn
