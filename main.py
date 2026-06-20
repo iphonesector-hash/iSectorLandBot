@@ -8,6 +8,7 @@ from telegram.ext import (
 )
 
 from modules.fun import *
+from modules.admin import *
 from config import TOKEN, BOT_NAME
 
 
@@ -62,74 +63,63 @@ async def menu_handler(update: Update, context):
 
 
     elif text == "😂 جوک":
-        await update.message.reply_text(
-            get_joke()
-        )
+        await update.message.reply_text(get_joke())
 
 
     elif text == "🧠 چیستان":
-        await update.message.reply_text(
-            riddle()
-        )
+        await update.message.reply_text(riddle())
 
 
     elif text == "🎲 تاس":
-        await update.message.reply_text(
-            dice()
-        )
+        await update.message.reply_text(dice())
 
 
     elif text == "🪙 شیر یا خط":
-        await update.message.reply_text(
-            coin()
-        )
+        await update.message.reply_text(coin())
 
 
     elif text == "📌 فکت":
-        await update.message.reply_text(
-            get_fact()
-        )
+        await update.message.reply_text(get_fact())
 
 
     elif text == "💪 انگیزشی":
-        await update.message.reply_text(
-            get_motive()
-        )
+        await update.message.reply_text(get_motive())
 
 
     elif text == "💬 تکست":
-        await update.message.reply_text(
-            get_text()
-        )
+        await update.message.reply_text(get_text())
 
 
     elif text == "🛠 کاربردی":
         await update.message.reply_text(
-            "🛠 ابزارها:\n\n"
+            "🛠 کاربردی:\n\n"
             "📅 تاریخ\n"
             "⏰ ساعت\n"
             "🌦 هواشناسی\n"
             "💵 ارز\n"
-            "🥇 طلا"
+            "🥇 طلا\n"
+            "🚗 خودرو"
         )
 
 
     elif text == "🛡 مدیریت":
         await update.message.reply_text(
             "🛡 مدیریت گروه:\n\n"
-            "بن\n"
-            "اخطار\n"
-            "سکوت\n"
-            "قفل‌ها"
+            "روی پیام ریپلای کن:\n\n"
+            "⚠️ اخطار\n"
+            "🧹 حذف اخطار\n"
+            "🚫 بن\n"
+            "👢 کیک\n"
+            "🔇 سکوت"
         )
 
 
     elif text == "📜 قوانین":
         await update.message.reply_text(
             "📜 قوانین:\n\n"
-            "احترام به اعضا\n"
-            "بدون اسپم\n"
-            "بدون تبلیغ"
+            "1- احترام\n"
+            "2- بدون اسپم\n"
+            "3- بدون تبلیغ"
         )
 
 
@@ -141,7 +131,7 @@ async def menu_handler(update: Update, context):
 
     else:
         await update.message.reply_text(
-            "این بخش به زودی کامل میشه 🔥"
+            "این بخش بزودی اضافه میشه 🔥"
         )
 
 
@@ -156,6 +146,29 @@ app.add_handler(
 app.add_handler(
     CommandHandler("help", help_cmd)
 )
+
+
+# مدیریت گروه
+app.add_handler(
+    MessageHandler(filters.Regex("^اخطار$"), warn)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^حذف اخطار$"), clear_warn)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^بن$"), ban)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^کیک$"), kick)
+)
+
+app.add_handler(
+    MessageHandler(filters.Regex("^سکوت$"), mute)
+)
+
 
 app.add_handler(
     MessageHandler(filters.TEXT, menu_handler)
