@@ -26,7 +26,7 @@ menu = [
 ]
 
 
-async def start(update: Update, context):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     get_user(update.effective_user)
 
@@ -38,7 +38,7 @@ async def start(update: Update, context):
     await update.message.reply_text(
         f"{BOT_NAME}\n\n"
         "🌻 خوش اومدی\n"
-        "یکی از گزینه‌ها رو انتخاب کن 👇",
+        "یک گزینه انتخاب کن 👇",
         reply_markup=keyboard
     )
 
@@ -62,10 +62,10 @@ async def profile_cmd(update, context):
 
     await update.message.reply_text(
         "👤 پروفایل\n\n"
-        f"نام: {info['name']}\n"
-        f"سطح: {info['level']}\n"
-        f"امتیاز: {info['coins']}\n"
-        f"VIP: {info['vip']}"
+        f"🧑 نام: {info['name']}\n"
+        f"⭐ سطح: {info['level']}\n"
+        f"🪙 امتیاز: {info['coins']}\n"
+        f"👑 VIP: {info['vip']}"
     )
 
 
@@ -97,13 +97,11 @@ async def menu_handler(update: Update, context):
 
     elif text == "🧠 چیستان":
 
-        add_coin(update.effective_user, 2)
         await update.message.reply_text(riddle())
 
 
     elif text == "🎲 تاس":
 
-        add_coin(update.effective_user, 1)
         await update.message.reply_text(dice())
 
 
@@ -137,8 +135,8 @@ async def menu_handler(update: Update, context):
     elif text == "🛡 مدیریت":
 
         await update.message.reply_text(
-            "🛡 مدیریت:\n\n"
-            "روی پیام کاربر ریپلای کن:\n\n"
+            "🛡 مدیریت گروه:\n\n"
+            "ریپلای روی پیام کاربر:\n\n"
             "⚠️ اخطار\n"
             "🧹 حذف اخطار\n"
             "🚫 بن\n"
@@ -177,7 +175,7 @@ async def menu_handler(update: Update, context):
 
         await update.message.reply_text(
             "📜 قوانین:\n\n"
-            "احترام الزامی است\n"
+            "احترام به همه\n"
             "اسپم ممنوع\n"
             "تبلیغ ممنوع"
         )
@@ -192,9 +190,12 @@ async def menu_handler(update: Update, context):
 
 
 
+# ساخت ربات
+
 app = Application.builder().token(TOKEN).build()
 
 
+# دستورات
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("help", help_cmd))
 app.add_handler(CommandHandler("profile", profile_cmd))
@@ -215,15 +216,30 @@ app.add_handler(MessageHandler(filters.Regex("^قفل کلمات$"), lock_words)
 app.add_handler(MessageHandler(filters.Regex("^حذف قفل کلمات$"), unlock_words))
 
 
-# منو
+# چک قفل‌ها
 app.add_handler(
-    MessageHandler(filters.TEXT, menu_handler)
+    MessageHandler(
+        filters.TEXT,
+        check_locks
+    )
 )
 
 
-# امنیت آخر اجرا شود
+# منوی اصلی
 app.add_handler(
-    MessageHandler(filters.TEXT, security)
+    MessageHandler(
+        filters.TEXT,
+        menu_handler
+    )
+)
+
+
+# امنیت
+app.add_handler(
+    MessageHandler(
+        filters.TEXT,
+        security
+    )
 )
 
 
