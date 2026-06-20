@@ -1,17 +1,14 @@
 import json
 import os
 
-
 FILE = "locks.json"
 
 
 def load():
     if not os.path.exists(FILE):
         return {}
-
     with open(FILE, "r") as f:
-        return json.load()
-
+        return json.load(f)  # باگ قبلی: json.load() بدون آرگومان بود
 
 
 def save(data):
@@ -19,15 +16,10 @@ def save(data):
         json.dump(data, f, indent=4)
 
 
-
 def get_chat(chat_id):
-
     data = load()
-
     cid = str(chat_id)
-
     if cid not in data:
-
         data[cid] = {
             "link": False,
             "forward": False,
@@ -37,155 +29,123 @@ def get_chat(chat_id):
             "file": False,
             "sticker": False
         }
-
         save(data)
-
     return data[cid]
 
 
-
 async def is_admin(update, context):
-
-    admins = await context.bot.get_chat_administrators(
-        update.effective_chat.id
-    )
-
-    return any(
-        x.user.id == update.effective_user.id
-        for x in admins
-    )
-
+    try:
+        admins = await context.bot.get_chat_administrators(update.effective_chat.id)
+        return any(x.user.id == update.effective_user.id for x in admins)
+    except:
+        return False
 
 
 async def toggle(update, context, key, value):
-
     if not await is_admin(update, context):
-        await update.message.reply_text(
-            "⛔ فقط ادمین‌ها"
-        )
+        await update.message.reply_text("⛔️ این دستور فقط برای ادمین‌هاست.")
         return
 
+    chat_id = update.effective_chat.id
+    data = load()
+    cid = str(chat_id)
 
-    chat = update.effective_chat.id
+    if cid not in data:
+        data[cid] = get_chat(chat_id)
 
-    data = get_chat(chat)
+    data[cid][key] = value
+    save(data)
 
-    data[key] = value
+    names = {
+        "link": "لینک",
+        "forward": "فوروارد",
+        "username": "یوزرنیم",
+        "photo": "عکس",
+        "video": "ویدیو",
+        "file": "فایل",
+        "sticker": "استیکر"
+    }
 
-
-    all_data = load()
-
-    all_data[str(chat)] = data
-
-    save(all_data)
-
-
-    await update.message.reply_text(
-        "🔒 قفل فعال شد"
-        if value else
-        "🔓 قفل خاموش شد"
-    )
-
-
-
-async def lock_link(update,context):
-    await toggle(update,context,"link",True)
-
-async def unlock_link(update,context):
-    await toggle(update,context,"link",False)
+    label = names.get(key, key)
+    if value:
+        await update.message.reply_text(f"🔒 قفل {label} فعال شد.")
+    else:
+        await update.message.reply_text(f"🔓 قفل {label} غیرفعال شد.")
 
 
-async def lock_forward(update,context):
-    await toggle(update,context,"forward",True)
+async def lock_link(update, context): await toggle(update, context, "link", True)
+async def unlock_link(update, context): await toggle(update, context, "link", False)
 
-async def unlock_forward(update,context):
-    await toggle(update,context,"forward",False)
+async def lock_forward(update, context): await toggle(update, context, "forward", True)
+async def unlock_forward(update, context): await toggle(update, context, "forward", False)
 
+async def lock_username(update, context): await toggle(update, context, "username", True)
+async def unlock_username(update, context): await toggle(update, context, "username", False)
 
-async def lock_username(update,context):
-    await toggle(update,context,"username",True)
+async def lock_photo(update, context): await toggle(update, context, "photo", True)
+async def unlock_photo(update, context): await toggle(update, context, "photo", False)
 
-async def unlock_username(update,context):
-    await toggle(update,context,"username",False)
+async def lock_video(update, context): await toggle(update, context, "video", True)
+async def unlock_video(update, context): await toggle(update, context, "video", False)
 
+async def lock_file(update, context): await toggle(update, context, "file", True)
+async def unlock_file(update, context): await toggle(update, context, "file", False)
 
-async def lock_photo(update,context):
-    await toggle(update,context,"photo",True)
-
-async def unlock_photo(update,context):
-    await toggle(update,context,"photo",False)
-
-
-async def lock_video(update,context):
-    await toggle(update,context,"video",True)
-
-async def unlock_video(update,context):
-    await toggle(update,context,"video",False)
+async def lock_sticker(update, context): await toggle(update, context, "sticker", True)
+async def unlock_sticker(update, context): await toggle(update, context, "sticker", False)
 
 
-async def lock_file(update,context):
-    await toggle(update,context,"file",True)
-
-async def unlock_file(update,context):
-    await toggle(update,context,"file",False)
-
-
-async def lock_sticker(update,context):
-    await toggle(update,context,"sticker",True)
-
-async def unlock_sticker(update,context):
-    await toggle(update,context,"sticker",False)
-
-
-
-async def check_locks(update,context):
-
+async def check_locks(update, context):
     if not update.message:
         return
 
+    # ادمین‌ها معاف از قفل‌ها هستن
+    try:
+        admins = await context.bot.get_chat_administrators(update.effective_chat.id)
+        if any(a.user.id == update.effective_user.id for a in admins):
+            return
+    except:
+        pass
 
     msg = update.message
+    cfg = get_chat(update.effective_chat.id)
+    text = msg.text or msg.caption or ""
 
-    cfg = get_chat(
-        update.effective_chat.id
-    )
+    if cfg["link"] and ("http" in text or "t.me/" in text):
+        await msg.delete()
+        await context.bot.send_message(
+            update.effective_chat.id,
+            f"🔒 ارسال لینک در این گروه ممنوع است."
+        )
+        return
 
+    if cfg["username"] and "@" in text:
+        await msg.delete()
+        await context.bot.send_message(
+            update.effective_chat.id,
+            f"🔒 ذکر یوزرنیم در این گروه ممنوع است."
+        )
+        return
 
-    text = msg.text or ""
-
-
-    if cfg["link"]:
-        if "http" in text or "t.me" in text:
-            await msg.delete()
-            return
-
-
-    if cfg["username"]:
-        if "@" in text:
-            await msg.delete()
-            return
-
-
-    if cfg["forward"]:
-        if msg.forward_date:
-            await msg.delete()
-            return
-
+    if cfg["forward"] and msg.forward_date:
+        await msg.delete()
+        await context.bot.send_message(
+            update.effective_chat.id,
+            f"🔒 فوروارد پیام در این گروه ممنوع است."
+        )
+        return
 
     if cfg["photo"] and msg.photo:
         await msg.delete()
         return
 
-
     if cfg["video"] and msg.video:
         await msg.delete()
         return
 
-
     if cfg["file"] and msg.document:
         await msg.delete()
         return
-
 
     if cfg["sticker"] and msg.sticker:
         await msg.delete()
