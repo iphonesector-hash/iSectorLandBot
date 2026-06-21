@@ -1,9 +1,8 @@
 import aiohttp
-import json
 import random
 from datetime import datetime
 
-GEMINI_API_KEY = "AIzaSyAb8RN6JpVL0K5dXd6OeNztiuqZCYSUCCpOlPmXlXYBHCfORRnQ"
+GEMINI_API_KEY = "AQ.Ab8RN6KdDEP-5almnMQV8pBoWJ13YDI3Cci4hymAeTj-CgLzwQ"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 SYSTEM_PROMPT = """تو Sector AI هستی، دستیار هوشمند و دوستانه گروه تلگرامی SectorLand.
@@ -25,8 +24,7 @@ SYSTEM_PROMPT = """تو Sector AI هستی، دستیار هوشمند و دوس
 - خلاصه متن و ترجمه
 
 وقتی کسی سلام میکنه گرم جوابش رو بده.
-وقتی کسی بن یا کیک میشه یه پیام طنزآمیز بنویس.
-هیچوقت نگو نمیدونم — یه جواب خلاقانه بده."""
+هیچوقت نگو نمیدونم - یه جواب خلاقانه بده."""
 
 
 async def ask_gemini(user_message: str, user_name: str = "", extra_context: str = "") -> str:
@@ -52,15 +50,17 @@ async def ask_gemini(user_message: str, user_name: str = "", extra_context: str 
                 headers={"Content-Type": "application/json"},
                 timeout=aiohttp.ClientTimeout(total=15)
             ) as resp:
-                if resp.status != 200:
-                    return "🤖 الان یکم سرم شلوغه، بعداً بپرس!"
                 data = await resp.json()
+                if resp.status != 200:
+                    error_msg = data.get("error", {}).get("message", "unknown")
+                    print(f"Gemini error {resp.status}: {error_msg}")
+                    return f"🤖 خطا: {error_msg}"
                 return data["candidates"][0]["content"]["parts"][0]["text"]
-    except Exception:
-        return "🤖 یه مشکل کوچیک پیش اومد، دوباره امتحان کن!"
+    except Exception as e:
+        print(f"Gemini exception: {e}")
+        return f"🤖 خطای اتصال: {e}"
 
 
-# ─── فال حافظ ───────────────────────────────────────────
 HAFEZ = [
     "الا یا ایها الساقی ادر کاساً و ناولها\nکه عشق آسان نمود اول ولی افتاد مشکل‌ها\n\n✨ تفسیر: مسیر سختی در پیش داری، ولی پایانش شیرینه.",
     "بیا که قصر امل سخت سست بنیاد است\nبیار باده که بنیاد عمر بر باد است\n\n✨ تفسیر: از لحظه حال لذت ببر، فرصت رو از دست نده.",
@@ -74,11 +74,13 @@ def get_fal():
     return f"📖 <b>فال حافظ</b>\n\n{random.choice(HAFEZ)}"
 
 
-# ─── هندلر اصلی AI ──────────────────────────────────────
 async def ai_handler(update, context):
     msg = update.message
+    if not msg or not msg.text:
+        return
+
     user = update.effective_user
-    text = msg.text or ""
+    text = msg.text.strip()
 
     is_private = update.effective_chat.type == "private"
 
@@ -88,44 +90,42 @@ async def ai_handler(update, context):
         msg.reply_to_message.from_user.is_bot
     )
 
-    bot_username = context.bot.username or ""
-    trigger_words = ["ربات سکتور", "سکتور", f"@{bot_username}"]
-    is_mentioned = any(t.lower() in text.lower() for t in trigger_words)
+    trigger_words = ["ربات سکتور", "sector ai", "سکتور"]
+    is_triggered = any(t in text.lower() for t in trigger_words)
 
-    if not (is_private or is_reply_to_bot or is_mentioned):
+    bot_username = (context.bot.username or "").lower()
+    is_mentioned = f"@{bot_username}" in text.lower()
+
+    if not (is_private or is_reply_to_bot or is_triggered or is_mentioned):
         return
 
     # پیام‌های منو رو رد کن
     menu_keywords = [
-        "سرگرمی", "کاربردی", "مدیریت", "قفل", "پروفایل",
-        "رتبه", "تنظیمات", "پشتیبانی", "برگشت", "جوک",
-        "فکت", "انگیزشی", "تاس", "چیستان", "اخطار", "بن",
-        "کیک", "میوت", "آنبن", "آنمیوت", "Sector AI"
+        "سرگرمی", "کاربردی", "مدیریت", "قفل‌ها", "پروفایل",
+        "رتبه‌بندی", "تنظیمات", "پشتیبانی", "برگشت", "جوک",
+        "فکت", "انگیزشی", "تاس", "چیستان", "اخطار", "بن کن",
+        "کیک کن", "میوت", "آنبن", "آنمیوت", "Sector AI",
+        "قفل لینک", "قفل فوروارد", "قفل عکس"
     ]
-    if any(k in text for k in menu_keywords):
+    if text in menu_keywords:
         return
 
-    # فال حافظ
     if "فال" in text:
         await msg.reply_text(get_fal(), parse_mode="HTML")
         return
 
-    # نشانه تایپ
     await context.bot.send_chat_action(update.effective_chat.id, "typing")
 
-    # اطلاعات اضافه برای context
-    extra = f"تاریخ امروز: {datetime.now().strftime('%Y-%m-%d')} | ساعت: {datetime.now().strftime('%H:%M')}"
-
+    extra = f"تاریخ: {datetime.now().strftime('%Y-%m-%d')} | ساعت: {datetime.now().strftime('%H:%M')}"
     response = await ask_gemini(text, user.first_name, extra)
     await msg.reply_text(response)
 
 
-# ─── واکنش به دستورات مدیریتی ───────────────────────────
 async def ai_ban_reaction(update, context, banned_user_name: str):
     reactions = [
         f"🚨 {banned_user_name} از گروه پرتاب شد! خداحافظ 👋",
-        f"🔨 یه نفر دیگه رفت! {banned_user_name} به تاریخ پیوست 😅",
-        f"🚫 {banned_user_name} بن شد. قوانین گروه شوخی بردار نیست!",
+        f"🔨 {banned_user_name} به تاریخ پیوست 😅",
+        f"🚫 {banned_user_name} بن شد. قوانین شوخی بردار نیست!",
     ]
     await update.message.reply_text(random.choice(reactions))
 
@@ -142,11 +142,11 @@ async def ai_kick_reaction(update, context, kicked_user_name: str):
 async def ai_warn_reaction(update, context, warned_user_name: str, count: int, limit: int):
     if count >= limit - 1:
         await update.message.reply_text(
-            f"⚠️ {warned_user_name} یه قدم تا بن فاصله داری! بهتره مراقب باشی 😬"
+            f"⚠️ {warned_user_name} یه قدم تا بن فاصله داری! مراقب باش 😬"
         )
     else:
         reactions = [
-            f"🤨 {warned_user_name}، داری اشتباه میری ها!",
+            f"🤨 {warned_user_name}، داری اشتباه میری!",
             f"😤 {warned_user_name} اخطار گرفت. ادامه بده ببین چی میشه!",
         ]
         await update.message.reply_text(random.choice(reactions))
