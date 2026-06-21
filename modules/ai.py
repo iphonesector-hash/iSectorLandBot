@@ -2,8 +2,8 @@ import aiohttp
 import random
 from datetime import datetime
 
-GEMINI_API_KEY = "AQ.Ab8RN6ICmQC2ll0KMcGRtwpeW8wkjq0NYrN3FTpgR0UxMGO79w"
-GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+GROQ_API_KEY = "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"
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 SYSTEM_PROMPT = """تو Sector AI هستی، دستیار هوشمند و دوستانه گروه تلگرامی SectorLand.
 
@@ -27,37 +27,41 @@ SYSTEM_PROMPT = """تو Sector AI هستی، دستیار هوشمند و دوس
 هیچوقت نگو نمیدونم - یه جواب خلاقانه بده."""
 
 
-async def ask_gemini(user_message: str, user_name: str = "", extra_context: str = "") -> str:
-    prompt = f"نام کاربر: {user_name}\n"
+async def ask_groq(user_message: str, user_name: str = "", extra_context: str = "") -> str:
+    content = f"نام کاربر: {user_name}\n"
     if extra_context:
-        prompt += f"اطلاعات اضافه: {extra_context}\n"
-    prompt += f"پیام کاربر: {user_message}"
+        content += f"اطلاعات اضافه: {extra_context}\n"
+    content += f"پیام کاربر: {user_message}"
 
     payload = {
-        "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.9,
-            "maxOutputTokens": 300
-        }
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": content}
+        ],
+        "temperature": 0.9,
+        "max_tokens": 300
     }
 
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                f"{GEMINI_URL}?key={GEMINI_API_KEY}",
+                GROQ_URL,
                 json=payload,
-                headers={"Content-Type": "application/json"},
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {GROQ_API_KEY}"
+                },
                 timeout=aiohttp.ClientTimeout(total=15)
             ) as resp:
                 data = await resp.json()
                 if resp.status != 200:
                     error_msg = data.get("error", {}).get("message", "unknown")
-                    print(f"Gemini error {resp.status}: {error_msg}")
+                    print(f"Groq error {resp.status}: {error_msg}")
                     return f"🤖 خطا: {error_msg}"
-                return data["candidates"][0]["content"]["parts"][0]["text"]
+                return data["choices"][0]["message"]["content"]
     except Exception as e:
-        print(f"Gemini exception: {e}")
+        print(f"Groq exception: {e}")
         return f"🤖 خطای اتصال: {e}"
 
 
@@ -99,7 +103,6 @@ async def ai_handler(update, context):
     if not (is_private or is_reply_to_bot or is_triggered or is_mentioned):
         return
 
-    # پیام‌های منو رو رد کن
     menu_keywords = [
         "سرگرمی", "کاربردی", "مدیریت", "قفل‌ها", "پروفایل",
         "رتبه‌بندی", "تنظیمات", "پشتیبانی", "برگشت", "جوک",
@@ -117,7 +120,7 @@ async def ai_handler(update, context):
     await context.bot.send_chat_action(update.effective_chat.id, "typing")
 
     extra = f"تاریخ: {datetime.now().strftime('%Y-%m-%d')} | ساعت: {datetime.now().strftime('%H:%M')}"
-    response = await ask_gemini(text, user.first_name, extra)
+    response = await ask_groq(text, user.first_name, extra)
     await msg.reply_text(response)
 
 
