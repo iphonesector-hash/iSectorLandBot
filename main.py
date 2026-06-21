@@ -26,8 +26,9 @@ from modules.locks import (
     check_locks
 )
 from modules.settings import (
-    settings_handler, toggle_setting,
-    set_welcome, welcome_new_member
+    settings_handler, settings_button_handler,
+    toggle_setting, set_welcome, set_rules_handler,
+    rules_handler, welcome_new_member, get_rules, get
 )
 from modules.profile import (
     get_user, add_message,
@@ -98,13 +99,31 @@ def lock_kb():
     return ReplyKeyboardMarkup(lock_menu, resize_keyboard=True)
 
 
+# دکمه‌های تنظیمات
+SETTINGS_BUTTONS = [
+    "ضداسپم", "فیلتر لینک", "فیلتر منشن", "خوش‌آمدگویی",
+    "✏️ تغییر پیام خوش‌آمد", "📜 قوانین گروه"
+]
+
+# دستورات مدیریتی فارسی
+ADMIN_COMMANDS = {
+    "اخطار": warn,
+    "پاک اخطار": clear_warning,
+    "اخطارها": warns,
+    "بن": ban,
+    "آنبن": unban,
+    "کیک": kick,
+    "میوت": mute,
+    "آنمیوت": unmute,
+}
+
 def clean(text):
     if not text:
         return ""
     for e in ["🎮","🛠","🛡","🔒","👤","📜","⚙️","🆘","🏆",
               "😂","🧠","💪","✨","🎲","🪙","🧩","✂️",
               "🌤","🌐","🔢","📐","⚠️","🔙","🚫","✅",
-              "👢","🔇","🔊","📋","🧹"]:
+              "👢","🔇","🔊","📋","🧹","🟢","🔴","✏️"]:
         text = text.replace(e, "")
     return text.strip()
 
@@ -123,24 +142,16 @@ async def start(update: Update, context):
 
 async def calc_cmd(update: Update, context):
     if not context.args:
-        await update.message.reply_text(
-            "🔢 مثال: <code>/calc 25 * 4 + 10</code>",
-            parse_mode="HTML"
-        )
+        await update.message.reply_text("🔢 مثال: <code>/calc 25 * 4 + 10</code>", parse_mode="HTML")
         return
-    expr = " ".join(context.args)
-    await update.message.reply_text(calculate(expr), parse_mode="HTML")
+    await update.message.reply_text(calculate(" ".join(context.args)), parse_mode="HTML")
 
 
 async def convert_cmd(update: Update, context):
     if not context.args:
-        await update.message.reply_text(
-            "📐 مثال: <code>/convert 100 km به m</code>",
-            parse_mode="HTML"
-        )
+        await update.message.reply_text("📐 مثال: <code>/convert 100 km به m</code>", parse_mode="HTML")
         return
-    text = " ".join(context.args)
-    await update.message.reply_text(convert_unit(text), parse_mode="HTML")
+    await update.message.reply_text(convert_unit(" ".join(context.args)), parse_mode="HTML")
 
 
 async def lock_handler(update: Update, context):
@@ -158,19 +169,6 @@ async def lock_handler(update: Update, context):
         await cmds[text](update, context)
 
 
-# دستورات مدیریتی فارسی (دکمه‌ای)
-ADMIN_COMMANDS = {
-    "اخطار": warn,
-    "پاک اخطار": clear_warning,
-    "اخطارها": warns,
-    "بن": ban,
-    "آنبن": unban,
-    "کیک": kick,
-    "میوت": mute,
-    "آنمیوت": unmute,
-}
-
-
 async def menu_handler(update: Update, context):
     text = update.message.text.strip()
     c = clean(text)
@@ -181,14 +179,12 @@ async def menu_handler(update: Update, context):
         await ADMIN_COMMANDS[c](update, context)
         return
 
-    # تنظیم حد اخطار
     if c == "تنظیم حد اخطار":
         limit = get_warn_limit(update.effective_chat.id)
         await update.message.reply_text(
             f"⚙️ <b>تنظیم حد اخطار</b>\n\n"
             f"حد فعلی: <b>{limit}</b> اخطار\n\n"
-            f"برای تغییر بنویس:\n"
-            f"<code>اخطار حد [عدد]</code>\n"
+            f"برای تغییر بنویس:\n<code>اخطار حد [عدد]</code>\n"
             f"مثال: <code>اخطار حد 5</code>",
             parse_mode="HTML"
         )
@@ -196,6 +192,11 @@ async def menu_handler(update: Update, context):
 
     if text.startswith("اخطار حد"):
         await admin_text_handler(update, context)
+        return
+
+    # ─── دکمه‌های تنظیمات ───
+    if any(btn in text for btn in SETTINGS_BUTTONS):
+        await settings_button_handler(update, context)
         return
 
     # ─── منوی اصلی ───
@@ -209,8 +210,8 @@ async def menu_handler(update: Update, context):
         limit = get_warn_limit(update.effective_chat.id)
         await update.message.reply_text(
             f"🛡 <b>پنل مدیریت</b>\n"
-            f"─────────────────\n"
-            f"📌 روی پیام کاربر ریپلای کن، بعد دکمه مورد نظر رو بزن.\n\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"📌 روی پیام کاربر ریپلای کن، بعد دکمه رو بزن.\n\n"
             f"⚙️ حد اخطار فعلی: <b>{limit}</b>",
             reply_markup=admin_kb(),
             parse_mode="HTML"
@@ -230,49 +231,45 @@ async def menu_handler(update: Update, context):
 
     elif c == "پشتیبانی":
         await update.message.reply_text(
-            "🆘 <b>پشتیبانی</b>\n\nبرای گزارش مشکل با سازنده تماس بگیر.",
+            "🆘 <b>پشتیبانی</b>\n\n"
+            "برای ارتباط با ادمین:\n"
+            "👤 @sector_ad\n\n"
+            "مشکلات، پیشنهادات و انتقادات رو میتونی مستقیم بفرستی.",
             parse_mode="HTML"
         )
 
     elif c == "برگشت":
         await update.message.reply_text("🏠 منوی اصلی:", reply_markup=main_kb())
 
-    # ─── منوی سرگرمی ───
-    elif c == "جوک":
-        await update.message.reply_text(get_joke())
-    elif c == "فکت":
-        await update.message.reply_text(get_fact())
-    elif c == "انگیزشی":
-        await update.message.reply_text(get_motive())
-    elif c == "متن":
-        await update.message.reply_text(get_text())
-    elif c == "تاس":
-        await update.message.reply_text(dice())
-    elif c == "شیر یا خط":
-        await update.message.reply_text(coin())
-    elif c == "چیستان":
-        await update.message.reply_text(riddle(), parse_mode="HTML")
-    elif c == "سنگ کاغذ قیچی":
-        await update.message.reply_text("✂️ بنویس: سنگ، کاغذ یا قیچی")
-    elif c in ["سنگ", "کاغذ", "قیچی"]:
-        await update.message.reply_text(rps(c))
+    # ─── سرگرمی ───
+    elif c == "جوک": await update.message.reply_text(get_joke())
+    elif c == "فکت": await update.message.reply_text(get_fact())
+    elif c == "انگیزشی": await update.message.reply_text(get_motive())
+    elif c == "متن": await update.message.reply_text(get_text())
+    elif c == "تاس": await update.message.reply_text(dice())
+    elif c == "شیر یا خط": await update.message.reply_text(coin())
+    elif c == "چیستان": await update.message.reply_text(riddle(), parse_mode="HTML")
+    elif c == "سنگ کاغذ قیچی": await update.message.reply_text("✂️ بنویس: سنگ، کاغذ یا قیچی")
+    elif c in ["سنگ", "کاغذ", "قیچی"]: await update.message.reply_text(rps(c))
 
-    # ─── منوی کاربردی ───
+    # ─── کاربردی ───
     elif c in ["آب و هوا", "ترجمه", "حساب‌گر", "تبدیل واحد"]:
         await useful_handler(update, context)
 
-    # ─── ردیابی پیام برای XP ───
+    # ─── XP ───
     else:
         if update.effective_chat.type != "private":
             add_message(update.effective_user)
 
 
-# ─── راه‌اندازی ───────────────────────────────────────
+# ─── راه‌اندازی ────────────────────────────────────────
 app = Application.builder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("profile", profile_handler))
 app.add_handler(CommandHandler("top", leaderboard_handler))
+app.add_handler(CommandHandler("rules", rules_handler))
+app.add_handler(CommandHandler("setrules", set_rules_handler))
 app.add_handler(CommandHandler("warn", warn))
 app.add_handler(CommandHandler("clearwarn", clear_warning))
 app.add_handler(CommandHandler("warns", warns))
@@ -289,7 +286,6 @@ app.add_handler(CommandHandler("convert", convert_cmd))
 app.add_handler(CommandHandler("toggle", toggle_setting))
 app.add_handler(CommandHandler("setwelcome", set_welcome))
 
-# قفل‌ها
 app.add_handler(
     MessageHandler(
         filters.Regex(
@@ -303,19 +299,16 @@ app.add_handler(
     group=0
 )
 
-# عضو جدید
 app.add_handler(
     MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member),
     group=0
 )
 
-# منو
 app.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND, menu_handler),
     group=1
 )
 
-# چک قفل‌ها
 app.add_handler(
     MessageHandler(filters.ALL & ~filters.COMMAND, check_locks),
     group=2
