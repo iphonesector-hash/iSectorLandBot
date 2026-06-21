@@ -2,7 +2,7 @@ import aiohttp
 import random
 from datetime import datetime
 
-GEMINI_API_KEY = "AQ.Ab8RN6KdDEP-5almnMQV8pBoWJ13YDI3Cci4hymAeTj-CgLzwQ"
+GEMINI_API_KEY = "AQ.Ab8RN6IyUe34gPZ2OVIYyVknNcUPSTAnNQa8e9z1rhbxhCPDdQ"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 SYSTEM_PROMPT = """تو Sector AI هستی، دستیار هوشمند و دوستانه گروه تلگرامی SectorLand.
