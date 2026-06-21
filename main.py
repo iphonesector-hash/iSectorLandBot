@@ -15,6 +15,10 @@ from modules.admin import (
     ban, unban, kick, mute, unmute,
     admin_text_handler, get_warn_limit
 )
+from modules.ai import (
+    ai_handler, get_fal,
+    ai_ban_reaction, ai_kick_reaction, ai_warn_reaction
+)
 from modules.locks import (
     lock_link, unlock_link,
     lock_forward, unlock_forward,
@@ -46,6 +50,7 @@ main_menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
     ["👤 پروفایل", "🏆 رتبه‌بندی"],
+    ["🤖 Sector AI", "📖 فال حافظ"],
     ["⚙️ تنظیمات", "🆘 پشتیبانی"]
 ]
 
@@ -229,7 +234,21 @@ async def menu_handler(update: Update, context):
     elif c == "تنظیمات":
         await settings_handler(update, context)
 
-    elif c == "پشتیبانی":
+    elif c == "Sector AI":
+        await update.message.reply_text(
+            "🤖 <b>Sector AI آماده‌ست!</b>\n\n"
+            "میتونی:\n"
+            "• بهم ریپلای بزنی\n"
+            "• منشنم کنی (@sector)\n"
+            "• توی پیوی باهام چت کنی\n\n"
+            "سوال بپرس، قیمت بخوای، غذا پیشنهاد بخوای یا فقط حرف بزنیم! 😊",
+            parse_mode="HTML"
+        )
+
+    elif c == "فال حافظ":
+        await update.message.reply_text(get_fal(), parse_mode="HTML")
+
+
         await update.message.reply_text(
             "🆘 <b>پشتیبانی</b>\n\n"
             "برای ارتباط با ادمین:\n"
@@ -312,6 +331,12 @@ app.add_handler(
 app.add_handler(
     MessageHandler(filters.ALL & ~filters.COMMAND, check_locks),
     group=2
+)
+
+# AI handler - آخرین گروه
+app.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, ai_handler),
+    group=3
 )
 
 print(f"✅ {BOT_NAME} Started!")
