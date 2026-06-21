@@ -3,7 +3,7 @@ import json
 import random
 from datetime import datetime
 
-GEMINI_API_KEY = "AQ.Ab8RN6JpVL0K5dXd6OeNztiuqZCYSUCCpOlPmXlXYBHCfORRnQ"
+GEMINI_API_KEY = "AIzaSyAb8RN6JpVL0K5dXd6OeNztiuqZCYSUCCpOlPmXlXYBHCfORRnQ"
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 SYSTEM_PROMPT = """تو Sector AI هستی، دستیار هوشمند و دوستانه گروه تلگرامی SectorLand.
@@ -80,19 +80,29 @@ async def ai_handler(update, context):
     user = update.effective_user
     text = msg.text or ""
 
-    # فقط وقتی منشن بشه یا ریپلای بشه یا در پیوی
     is_private = update.effective_chat.type == "private"
+
     is_reply_to_bot = (
-        msg.reply_to_message and
-        msg.reply_to_message.from_user and
+        msg.reply_to_message is not None and
+        msg.reply_to_message.from_user is not None and
         msg.reply_to_message.from_user.is_bot
     )
-    is_mentioned = any(
-        e.type == "mention" and "sector" in text.lower()
-        for e in (msg.entities or [])
-    )
+
+    bot_username = context.bot.username or ""
+    trigger_words = ["ربات سکتور", "سکتور", f"@{bot_username}"]
+    is_mentioned = any(t.lower() in text.lower() for t in trigger_words)
 
     if not (is_private or is_reply_to_bot or is_mentioned):
+        return
+
+    # پیام‌های منو رو رد کن
+    menu_keywords = [
+        "سرگرمی", "کاربردی", "مدیریت", "قفل", "پروفایل",
+        "رتبه", "تنظیمات", "پشتیبانی", "برگشت", "جوک",
+        "فکت", "انگیزشی", "تاس", "چیستان", "اخطار", "بن",
+        "کیک", "میوت", "آنبن", "آنمیوت", "Sector AI"
+    ]
+    if any(k in text for k in menu_keywords):
         return
 
     # فال حافظ
@@ -140,4 +150,3 @@ async def ai_warn_reaction(update, context, warned_user_name: str, count: int, l
             f"😤 {warned_user_name} اخطار گرفت. ادامه بده ببین چی میشه!",
         ]
         await update.message.reply_text(random.choice(reactions))
-
