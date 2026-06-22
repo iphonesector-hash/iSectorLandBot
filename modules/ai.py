@@ -3,44 +3,112 @@ import random
 from datetime import datetime
 
 GROQ_API_KEY = "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"
+TAVILY_API_KEY = "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"
+
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+TAVILY_URL = "https://api.tavily.com/search"
 
-SYSTEM_PROMPT = """تو Sector AI هستی، دستیار هوشمند و دوستانه گروه تلگرامی SectorLand.
+SYSTEM_PROMPT = """تو Sector AI هستی، دستیار باهوش و صمیمی گروه تلگرامی SectorLand.
 
-شخصیت تو:
-- خودمونی، شوخ‌طبع و صمیمی هستی
-- با کاربرا مثل دوست قدیمی حرف میزنی
-- از اسم کاربر استفاده میکنی
-- جواب‌هات کوتاه و جذابه (حداکثر ۳-۴ جمله)
-- از ایموجی استفاده میکنی
-- فارسی صحبت میکنی
+شخصیت:
+- فارسی روون و خودمونی صحبت میکنی
+- از ایموجی استفاده میکنی  
+- جواب‌هات کوتاه و مفیده (۲-۴ جمله)
+- با کاربر دوستانه و شوخ‌طبع هستی
 
-تخصص‌هات:
-- جواب دادن به سوالات روزمره
-- قیمت طلا، دلار، ماشین، موبایل (تخمین میزنی و میگی قیمت تقریبیه)
-- پیشنهاد غذا و دستور پخت
-- فال حافظ و سرگرمی
-- بازی و چالش با کاربرا
-- خلاصه متن و ترجمه
+وقتی اطلاعات جستجو بهت داده میشه:
+- اطلاعات رو خلاصه و ساده بگو
+- منبع رو ذکر نکن
+- فارسی توضیح بده
+- عدد و رقم دقیق بده"""
 
-وقتی کسی سلام میکنه گرم جوابش رو بده.
-هیچوقت نگو نمیدونم - یه جواب خلاقانه بده."""
+MENU_TEXTS = {
+    "🎮 سرگرمی", "🛠 کاربردی", "🛡 مدیریت", "🔒 قفل‌ها",
+    "👤 پروفایل", "🏆 رتبه‌بندی", "⚙️ تنظیمات", "🆘 پشتیبانی",
+    "🤖 Sector AI", "📖 فال حافظ", "🔙 برگشت",
+    "😂 جوک", "🧠 فکت", "💪 انگیزشی", "✨ متن",
+    "🎲 تاس", "🪙 شیر یا خط", "🧩 چیستان", "✂️ سنگ کاغذ قیچی",
+    "🌤 آب و هوا", "🌐 ترجمه", "🔢 حساب‌گر", "📐 تبدیل واحد",
+    "⚠️ اخطار", "🧹 پاک اخطار", "📋 اخطارها",
+    "🚫 بن", "✅ آنبن", "👢 کیک", "🔇 میوت", "🔊 آنمیوت",
+    "⚙️ تنظیم حد اخطار",
+    "قفل لینک", "حذف قفل لینک", "قفل فوروارد", "حذف قفل فوروارد",
+    "قفل یوزرنیم", "حذف قفل یوزرنیم", "قفل عکس", "حذف قفل عکس",
+    "قفل ویدیو", "حذف قفل ویدیو", "قفل فایل", "حذف قفل فایل",
+    "قفل استیکر", "حذف قفل استیکر",
+    "🟢 ضداسپم روشن کن", "🔴 ضداسپم خاموش کن",
+    "🟢 فیلتر لینک روشن کن", "🔴 فیلتر لینک خاموش کن",
+    "🟢 فیلتر منشن روشن کن", "🔴 فیلتر منشن خاموش کن",
+    "🟢 خوش‌آمدگویی روشن کن", "🔴 خوش‌آمدگویی خاموش کن",
+    "✏️ تغییر پیام خوش‌آمد", "📜 قوانین گروه",
+    "سنگ", "کاغذ", "قیچی",
+}
+
+# کلمات کلیدی که نیاز به جستجو دارن
+SEARCH_TRIGGERS = [
+    "قیمت", "طلا", "سکه", "دلار", "یورو", "ارز",
+    "آب و هوا", "هوا", "دما", "باران", "برف",
+    "خبر", "اخبار", "امروز", "جدیدترین",
+    "موبایل", "گوشی", "ماشین", "خودرو",
+    "بورس", "سهام", "ارز دیجیتال", "بیتکوین",
+]
 
 
-async def ask_groq(user_message: str, user_name: str = "", extra_context: str = "") -> str:
+async def search_web(query: str) -> str:
+    """جستجو در اینترنت با Tavily"""
+    try:
+        payload = {
+            "api_key": TAVILY_API_KEY,
+            "query": query,
+            "search_depth": "basic",
+            "max_results": 3,
+            "include_answer": True
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                TAVILY_URL,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=10)
+            ) as resp:
+                if resp.status != 200:
+                    return ""
+                data = await resp.json()
+
+                # اگه جواب مستقیم داشت
+                if data.get("answer"):
+                    return f"[نتیجه جستجو: {data['answer']}]"
+
+                # وگرنه از نتایج استفاده کن
+                results = data.get("results", [])
+                if not results:
+                    return ""
+
+                snippets = []
+                for r in results[:2]:
+                    content = r.get("content", "")[:200]
+                    if content:
+                        snippets.append(content)
+
+                return f"[نتایج جستجو: {' | '.join(snippets)}]"
+    except Exception as e:
+        print(f"Tavily error: {e}")
+        return ""
+
+
+async def ask_groq(user_message: str, user_name: str = "", search_context: str = "") -> str:
     content = f"نام کاربر: {user_name}\n"
-    if extra_context:
-        content += f"اطلاعات اضافه: {extra_context}\n"
+    if search_context:
+        content += f"اطلاعات از اینترنت: {search_context}\n"
     content += f"پیام کاربر: {user_message}"
 
     payload = {
-        "model": "llama-3.3-70b-versatile",
+        "model": "mixtral-8x7b-32768",
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": content}
         ],
-        "temperature": 0.9,
-        "max_tokens": 300
+        "temperature": 0.7,
+        "max_tokens": 400
     }
 
     try:
@@ -52,17 +120,34 @@ async def ask_groq(user_message: str, user_name: str = "", extra_context: str = 
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {GROQ_API_KEY}"
                 },
-                timeout=aiohttp.ClientTimeout(total=15)
+                timeout=aiohttp.ClientTimeout(total=20)
             ) as resp:
                 data = await resp.json()
                 if resp.status != 200:
-                    error_msg = data.get("error", {}).get("message", "unknown")
-                    print(f"Groq error {resp.status}: {error_msg}")
-                    return f"🤖 خطا: {error_msg}"
+                    print(f"Groq error: {data}")
+                    return "🤖 یه لحظه مشکل داشتم، دوباره بپرس!"
                 return data["choices"][0]["message"]["content"]
     except Exception as e:
         print(f"Groq exception: {e}")
-        return f"🤖 خطای اتصال: {e}"
+        return "🤖 خطای اتصال، دوباره امتحان کن!"
+
+
+def needs_search(text: str) -> bool:
+    """چک میکنه آیا پیام نیاز به جستجو داره"""
+    text_lower = text.lower()
+    return any(trigger in text_lower for trigger in SEARCH_TRIGGERS)
+
+
+def build_search_query(text: str) -> str:
+    """query جستجو رو میسازه"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    if any(w in text for w in ["قیمت", "طلا", "سکه", "دلار", "ارز"]):
+        return f"قیمت روز {text} {today} ایران"
+    if any(w in text for w in ["هوا", "آب و هوا", "دما"]):
+        return f"آب و هوا {text} امروز"
+    if any(w in text for w in ["خبر", "اخبار"]):
+        return f"اخبار امروز ایران {today}"
+    return f"{text} {today}"
 
 
 HAFEZ = [
@@ -86,31 +171,21 @@ async def ai_handler(update, context):
     user = update.effective_user
     text = msg.text.strip()
 
-    is_private = update.effective_chat.type == "private"
+    if text in MENU_TEXTS:
+        return
 
+    is_private = update.effective_chat.type == "private"
     is_reply_to_bot = (
         msg.reply_to_message is not None and
         msg.reply_to_message.from_user is not None and
         msg.reply_to_message.from_user.is_bot
     )
-
-    trigger_words = ["ربات سکتور", "sector ai", "سکتور"]
+    trigger_words = ["ربات سکتور", "sector ai"]
     is_triggered = any(t in text.lower() for t in trigger_words)
-
     bot_username = (context.bot.username or "").lower()
     is_mentioned = f"@{bot_username}" in text.lower()
 
     if not (is_private or is_reply_to_bot or is_triggered or is_mentioned):
-        return
-
-    menu_keywords = [
-        "سرگرمی", "کاربردی", "مدیریت", "قفل‌ها", "پروفایل",
-        "رتبه‌بندی", "تنظیمات", "پشتیبانی", "برگشت", "جوک",
-        "فکت", "انگیزشی", "تاس", "چیستان", "اخطار", "بن کن",
-        "کیک کن", "میوت", "آنبن", "آنمیوت", "Sector AI",
-        "قفل لینک", "قفل فوروارد", "قفل عکس"
-    ]
-    if text in menu_keywords:
         return
 
     if "فال" in text:
@@ -119,8 +194,14 @@ async def ai_handler(update, context):
 
     await context.bot.send_chat_action(update.effective_chat.id, "typing")
 
-    extra = f"تاریخ: {datetime.now().strftime('%Y-%m-%d')} | ساعت: {datetime.now().strftime('%H:%M')}"
-    response = await ask_groq(text, user.first_name, extra)
+    # جستجو در اینترنت اگه نیاز بود
+    search_context = ""
+    if needs_search(text):
+        await context.bot.send_chat_action(update.effective_chat.id, "typing")
+        query = build_search_query(text)
+        search_context = await search_web(query)
+
+    response = await ask_groq(text, user.first_name, search_context)
     await msg.reply_text(response)
 
 
@@ -153,4 +234,3 @@ async def ai_warn_reaction(update, context, warned_user_name: str, count: int, l
             f"😤 {warned_user_name} اخطار گرفت. ادامه بده ببین چی میشه!",
         ]
         await update.message.reply_text(random.choice(reactions))
-    
