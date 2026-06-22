@@ -204,6 +204,11 @@ async def ai_handler(update, context):
     if not is_private and not (is_reply_to_bot or is_triggered or is_mentioned):
         return
 
+    # اگه پیام قبلاً توسط منو یا بازی‌ها پردازش شده، جواب نده
+    if context.user_data.get("handled"):
+        context.user_data["handled"] = False
+        return
+
     if "فال" in text:
         await msg.reply_text(get_fal(), parse_mode="HTML")
         return
