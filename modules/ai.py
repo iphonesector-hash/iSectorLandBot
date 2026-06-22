@@ -177,24 +177,23 @@ async def ai_handler(update, context):
     text = msg.text.strip()
 
 
-    # دکمه‌ها و منوهای ربات توسط AI جواب داده نشوند
+    # دکمه‌های ربات جواب AI ندهند
     if text in MENU_TEXTS or any(x in text for x in [
-        "🎮", "🛠", "🛡", "🔒",
-        "👤", "🏆", "⚙️", "🆘",
-        "📖", "😂", "🧠",
-        "💪", "✨", "🎲",
-        "🪙", "🧩", "✂️",
-        "🌤", "🌐", "🔢",
-        "📐", "⚠️",
-        "🚫", "✅", "👢",
-        "🔇", "🔊",
-        "👛", "🎁",
-        "🏦", "💸"
+        "🎮","🛠","🛡","🔒",
+        "👤","🏆","⚙️","🆘",
+        "📖","😂","🧠",
+        "💪","✨","🎲",
+        "🪙","🧩","✂️",
+        "🌤","🌐","🔢",
+        "📐","⚠️",
+        "🚫","✅","👢",
+        "🔇","🔊",
+        "👛","🎁",
+        "🏦","💸"
     ]):
         return
 
 
-    # اگر پیام دستور تلگرام بود
     if text.startswith("/"):
         return
 
@@ -202,22 +201,20 @@ async def ai_handler(update, context):
     user = update.effective_user
 
 
-    # در گروه فقط وقتی AI صدا زده شد جواب بده
-    chat_type = update.effective_chat.type
-
-    if chat_type in ["group", "supergroup"]:
+    # گروه فقط با صدا زدن جواب بده
+    if update.effective_chat.type in ["group","supergroup"]:
 
         bot_username = (context.bot.username or "").lower()
 
-        is_reply = (
+        reply_bot = (
             msg.reply_to_message
             and msg.reply_to_message.from_user
             and msg.reply_to_message.from_user.is_bot
         )
 
-        is_mention = f"@{bot_username}" in text.lower()
+        mention = f"@{bot_username}" in text.lower()
 
-        if not is_reply and not is_mention:
+        if not reply_bot and not mention:
             return
 
 
@@ -241,6 +238,10 @@ async def ai_handler(update, context):
 
 
     await msg.reply_text(answer)
+
+
+
+async def ai_ban_reaction(
     update,
     context,
     banned_user_name
@@ -249,8 +250,6 @@ async def ai_handler(update, context):
     await update.message.reply_text(
         f"🚫 {banned_user_name} بن شد 😅"
     )
-
-
 
 async def ai_kick_reaction(
     update,
