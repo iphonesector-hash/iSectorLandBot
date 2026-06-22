@@ -113,15 +113,14 @@ async def ask_groq(user_message: str, user_name: str = "", search_context: str =
     content += f"پیام کاربر: {user_message}"
 
     payload = {
-        "payload = {
     "model": "llama-3.3-70b-versatile",
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": content}
-        ],
-        "temperature": 0.7,
-        "max_tokens": 400
-    }
+    "messages": [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": content}
+    ],
+    "temperature": 0.7,
+    "max_tokens": 400
+}
 
     try:
         async with aiohttp.ClientSession() as session:
