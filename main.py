@@ -1,9 +1,6 @@
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    filters
+    Application, CommandHandler, MessageHandler, filters
 )
 
 from modules.fun import (
@@ -15,32 +12,30 @@ from modules.admin import (
     ban, unban, kick, mute, unmute,
     admin_text_handler, get_warn_limit
 )
-from modules.ai import (
-    ai_handler, get_fal,
-    ai_ban_reaction, ai_kick_reaction, ai_warn_reaction
-)
 from modules.locks import (
-    lock_link, unlock_link,
-    lock_forward, unlock_forward,
-    lock_username, unlock_username,
-    lock_photo, unlock_photo,
-    lock_video, unlock_video,
-    lock_file, unlock_file,
-    lock_sticker, unlock_sticker,
-    check_locks
+    lock_link, unlock_link, lock_forward, unlock_forward,
+    lock_username, unlock_username, lock_photo, unlock_photo,
+    lock_video, unlock_video, lock_file, unlock_file,
+    lock_sticker, unlock_sticker, check_locks
 )
 from modules.settings import (
     settings_handler, settings_button_handler,
     toggle_setting, set_welcome, set_rules_handler,
-    rules_handler, welcome_new_member, get_rules, get
+    rules_handler, welcome_new_member, get
 )
 from modules.profile import (
-    get_user, add_message,
-    profile_handler, leaderboard_handler
+    get_user, add_message, profile_handler, leaderboard_handler
 )
 from modules.useful import (
-    useful_handler, weather, translate,
-    calculate, convert_unit
+    useful_handler, weather, translate, calculate, convert_unit
+)
+from modules.bank import (
+    bank_profile, deposit, withdraw, daily,
+    transfer, loan, payloan, add_coins_from_message
+)
+from modules.ai import (
+    ai_handler, get_fal,
+    ai_ban_reaction, ai_kick_reaction, ai_warn_reaction
 )
 from config import TOKEN, BOT_NAME
 
@@ -50,7 +45,7 @@ main_menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
     ["👤 پروفایل", "🏆 رتبه‌بندی"],
-    ["🤖 Sector AI", "📖 فال حافظ"],
+    ["💰 سکه و بانک", "📖 فال حافظ"],
     ["⚙️ تنظیمات", "🆘 پشتیبانی"]
 ]
 
@@ -87,79 +82,68 @@ lock_menu = [
     ["🔙 برگشت"]
 ]
 
+bank_menu = [
+    ["👛 کیف پول", "🎁 جایزه روزانه"],
+    ["🏦 واریز", "💸 برداشت"],
+    ["🤝 انتقال سکه", "📛 وام"],
+    ["🔙 برگشت"]
+]
 
-def main_kb():
-    return ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
-
-def fun_kb():
-    return ReplyKeyboardMarkup(fun_menu, resize_keyboard=True)
-
-def useful_kb():
-    return ReplyKeyboardMarkup(useful_menu, resize_keyboard=True)
-
-def admin_kb():
-    return ReplyKeyboardMarkup(admin_menu, resize_keyboard=True)
-
-def lock_kb():
-    return ReplyKeyboardMarkup(lock_menu, resize_keyboard=True)
-
-
-# دکمه‌های تنظیمات
 SETTINGS_BUTTONS = [
     "ضداسپم", "فیلتر لینک", "فیلتر منشن", "خوش‌آمدگویی",
     "✏️ تغییر پیام خوش‌آمد", "📜 قوانین گروه"
 ]
 
-# دستورات مدیریتی فارسی
 ADMIN_COMMANDS = {
-    "اخطار": warn,
-    "پاک اخطار": clear_warning,
-    "اخطارها": warns,
-    "بن": ban,
-    "آنبن": unban,
-    "کیک": kick,
-    "میوت": mute,
-    "آنمیوت": unmute,
+    "اخطار": warn, "پاک اخطار": clear_warning,
+    "اخطارها": warns, "بن": ban, "آنبن": unban,
+    "کیک": kick, "میوت": mute, "آنمیوت": unmute,
 }
+
+
+def main_kb(): return ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
+def fun_kb(): return ReplyKeyboardMarkup(fun_menu, resize_keyboard=True)
+def useful_kb(): return ReplyKeyboardMarkup(useful_menu, resize_keyboard=True)
+def admin_kb(): return ReplyKeyboardMarkup(admin_menu, resize_keyboard=True)
+def lock_kb(): return ReplyKeyboardMarkup(lock_menu, resize_keyboard=True)
+def bank_kb(): return ReplyKeyboardMarkup(bank_menu, resize_keyboard=True)
+
 
 def clean(text):
     if not text:
         return ""
-    for e in ["🎮","🛠","🛡","🔒","👤","📜","⚙️","🆘","🏆",
-              "😂","🧠","💪","✨","🎲","🪙","🧩","✂️",
-              "🌤","🌐","🔢","📐","⚠️","🔙","🚫","✅",
-              "👢","🔇","🔊","📋","🧹","🟢","🔴","✏️"]:
+    for e in ["🎮","🛠","🛡","🔒","👤","📜","⚙️","🆘","🏆","💰","📖",
+              "😂","🧠","💪","✨","🎲","🪙","🧩","✂️","🌤","🌐","🔢",
+              "📐","⚠️","🔙","🚫","✅","👢","🔇","🔊","📋","🧹","🟢",
+              "🔴","✏️","👛","🎁","🏦","💸","🤝","📛"]:
         text = text.replace(e, "")
     return text.strip()
 
-
-# ─── هندلرها ───────────────────────────────────────────
 
 async def start(update: Update, context):
     user = update.effective_user
     get_user(user)
     await update.message.reply_text(
         f"{BOT_NAME}\n\n👋 خوش اومدی <b>{user.first_name}</b>!",
-        reply_markup=main_kb(),
-        parse_mode="HTML"
+        reply_markup=main_kb(), parse_mode="HTML"
     )
 
 
-async def calc_cmd(update: Update, context):
+async def calc_cmd(update, context):
     if not context.args:
         await update.message.reply_text("🔢 مثال: <code>/calc 25 * 4 + 10</code>", parse_mode="HTML")
         return
     await update.message.reply_text(calculate(" ".join(context.args)), parse_mode="HTML")
 
 
-async def convert_cmd(update: Update, context):
+async def convert_cmd(update, context):
     if not context.args:
         await update.message.reply_text("📐 مثال: <code>/convert 100 km به m</code>", parse_mode="HTML")
         return
     await update.message.reply_text(convert_unit(" ".join(context.args)), parse_mode="HTML")
 
 
-async def lock_handler(update: Update, context):
+async def lock_handler(update, context):
     text = update.message.text.strip()
     cmds = {
         "قفل لینک": lock_link, "حذف قفل لینک": unlock_link,
@@ -178,7 +162,7 @@ async def menu_handler(update: Update, context):
     text = update.message.text.strip()
     c = clean(text)
 
-    # ─── دستورات مدیریتی فارسی ───
+    # ─── مدیریت ───
     if c in ADMIN_COMMANDS:
         context.args = []
         await ADMIN_COMMANDS[c](update, context)
@@ -187,10 +171,7 @@ async def menu_handler(update: Update, context):
     if c == "تنظیم حد اخطار":
         limit = get_warn_limit(update.effective_chat.id)
         await update.message.reply_text(
-            f"⚙️ <b>تنظیم حد اخطار</b>\n\n"
-            f"حد فعلی: <b>{limit}</b> اخطار\n\n"
-            f"برای تغییر بنویس:\n<code>اخطار حد [عدد]</code>\n"
-            f"مثال: <code>اخطار حد 5</code>",
+            f"⚙️ حد اخطار فعلی: <b>{limit}</b>\n\nبنویس: <code>اخطار حد [عدد]</code>",
             parse_mode="HTML"
         )
         return
@@ -199,7 +180,7 @@ async def menu_handler(update: Update, context):
         await admin_text_handler(update, context)
         return
 
-    # ─── دکمه‌های تنظیمات ───
+    # ─── تنظیمات ───
     if any(btn in text for btn in SETTINGS_BUTTONS):
         await settings_button_handler(update, context)
         return
@@ -214,12 +195,10 @@ async def menu_handler(update: Update, context):
     elif c == "مدیریت":
         limit = get_warn_limit(update.effective_chat.id)
         await update.message.reply_text(
-            f"🛡 <b>پنل مدیریت</b>\n"
-            f"━━━━━━━━━━━━━━━━━━\n"
-            f"📌 روی پیام کاربر ریپلای کن، بعد دکمه رو بزن.\n\n"
-            f"⚙️ حد اخطار فعلی: <b>{limit}</b>",
-            reply_markup=admin_kb(),
-            parse_mode="HTML"
+            f"🛡 <b>پنل مدیریت</b>\n━━━━━━━━━━━━━━━━━━\n"
+            f"📌 روی پیام کاربر ریپلای کن، بعد دکمه رو بزن.\n"
+            f"⚙️ حد اخطار: <b>{limit}</b>",
+            reply_markup=admin_kb(), parse_mode="HTML"
         )
 
     elif c == "قفل‌ها":
@@ -231,29 +210,49 @@ async def menu_handler(update: Update, context):
     elif c == "رتبه‌بندی":
         await leaderboard_handler(update, context)
 
-    elif c == "تنظیمات":
-        await settings_handler(update, context)
-
-    elif c == "Sector AI":
+    elif c == "سکه و بانک":
         await update.message.reply_text(
-            "🤖 <b>Sector AI آماده‌ست!</b>\n\n"
-            "میتونی:\n"
-            "• بهم ریپلای بزنی\n"
-            "• منشنم کنی (@sector)\n"
-            "• توی پیوی باهام چت کنی\n\n"
-            "سوال بپرس، قیمت بخوای، غذا پیشنهاد بخوای یا فقط حرف بزنیم! 😊",
+            "💰 <b>سکه و بانک</b>\n━━━━━━━━━━━━━━━━━━\n"
+            "برای مشاهده حساب و دستورات یکی از گزینه‌ها رو انتخاب کن:",
+            reply_markup=bank_kb(), parse_mode="HTML"
+        )
+
+    elif c == "کیف پول":
+        await bank_profile(update, context)
+
+    elif c == "جایزه روزانه":
+        await daily(update, context)
+
+    elif c == "واریز":
+        await update.message.reply_text("🏦 مقدار رو بنویس:\n<code>/deposit 100</code>", parse_mode="HTML")
+
+    elif c == "برداشت":
+        await update.message.reply_text("💸 مقدار رو بنویس:\n<code>/withdraw 100</code>", parse_mode="HTML")
+
+    elif c == "انتقال سکه":
+        await update.message.reply_text(
+            "🤝 روی پیام کاربر ریپلای کن و بنویس:\n<code>/transfer 100</code>",
+            parse_mode="HTML"
+        )
+
+    elif c == "وام":
+        await update.message.reply_text(
+            "📛 <b>سیستم وام</b>\n\nحداکثر: ۵۰۰ سکه | بهره: ۱۰٪\n<code>/loan 200</code>",
             parse_mode="HTML"
         )
 
     elif c == "فال حافظ":
         await update.message.reply_text(get_fal(), parse_mode="HTML")
 
+    elif c == "تنظیمات":
+        await settings_handler(update, context)
 
+    elif c == "پشتیبانی":
         await update.message.reply_text(
-            "🆘 <b>پشتیبانی</b>\n\n"
+            "🆘 <b>پشتیبانی SectorLand</b>\n\n"
             "برای ارتباط با ادمین:\n"
             "👤 @sector_ad\n\n"
-            "مشکلات، پیشنهادات و انتقادات رو میتونی مستقیم بفرستی.",
+            "مشکلات، پیشنهادات و انتقادات رو مستقیم بفرست.",
             parse_mode="HTML"
         )
 
@@ -275,10 +274,11 @@ async def menu_handler(update: Update, context):
     elif c in ["آب و هوا", "ترجمه", "حساب‌گر", "تبدیل واحد"]:
         await useful_handler(update, context)
 
-    # ─── XP ───
+    # ─── XP و سکه ───
     else:
         if update.effective_chat.type != "private":
             add_message(update.effective_user)
+            add_coins_from_message(update.effective_user, 1)
 
 
 # ─── راه‌اندازی ────────────────────────────────────────
@@ -304,6 +304,12 @@ app.add_handler(CommandHandler("calc", calc_cmd))
 app.add_handler(CommandHandler("convert", convert_cmd))
 app.add_handler(CommandHandler("toggle", toggle_setting))
 app.add_handler(CommandHandler("setwelcome", set_welcome))
+app.add_handler(CommandHandler("deposit", deposit))
+app.add_handler(CommandHandler("withdraw", withdraw))
+app.add_handler(CommandHandler("daily", daily))
+app.add_handler(CommandHandler("transfer", transfer))
+app.add_handler(CommandHandler("loan", loan))
+app.add_handler(CommandHandler("payloan", payloan))
 
 app.add_handler(
     MessageHandler(
@@ -314,26 +320,20 @@ app.add_handler(
             r"قفل استیکر|حذف قفل استیکر)$"
         ),
         lock_handler
-    ),
-    group=0
+    ), group=0
 )
-
 app.add_handler(
     MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member),
     group=0
 )
-
 app.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND, menu_handler),
     group=1
 )
-
 app.add_handler(
     MessageHandler(filters.ALL & ~filters.COMMAND, check_locks),
     group=2
 )
-
-# AI handler - آخرین گروه
 app.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND, ai_handler),
     group=3
