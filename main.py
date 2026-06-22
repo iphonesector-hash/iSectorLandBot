@@ -172,6 +172,7 @@ async def menu_handler(update: Update, context):
 
     # مدیریت
     if c in ADMIN_COMMANDS:
+        context.user_data["handled"] = True
         context.args = []
         await ADMIN_COMMANDS[c](update, context)
         return
@@ -194,6 +195,15 @@ async def menu_handler(update: Update, context):
         return
 
     # منوی اصلی
+    if c in ["سرگرمی","کاربردی","مدیریت","قفل‌ها","پروفایل","رتبه‌بندی",
+              "سکه و بانک","کیف پول","جایزه روزانه","واریز","برداشت",
+              "انتقال سکه","وام","فال حافظ","تنظیمات","پشتیبانی","برگشت",
+              "حدس کلمه","حدس پرچم","دوئل","دزد و پلیس",
+              "جوک","فکت","انگیزشی","متن","تاس","شیر یا خط","چیستان",
+              "سنگ کاغذ قیچی","سنگ","کاغذ","قیچی",
+              "آب و هوا","ترجمه","حساب‌گر","تبدیل واحد"] or        text.startswith("اخطار حد") or any(btn in text for btn in SETTINGS_BUTTONS):
+        context.user_data["handled"] = True
+
     if c == "سرگرمی":
         await update.message.reply_text("🎮 بخش سرگرمی:", reply_markup=fun_kb())
     elif c == "کاربردی":
