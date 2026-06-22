@@ -32,10 +32,16 @@ from modules.useful import (
 from modules.bank import (
     bank_profile, deposit, withdraw, daily,
     transfer, loan, payloan, add_coins_from_message
+    bank_profile, deposit, withdraw, daily,
+    transfer, loan, payloan, add_coins_from_message
 )
 from modules.ai import (
     ai_handler, get_fal,
     ai_ban_reaction, ai_kick_reaction, ai_warn_reaction
+)
+from modules.games import (
+    word_guess_start, flag_guess_start,
+    duel_start, cop_game_start, games_handler
 )
 from config import TOKEN, BOT_NAME
 
@@ -54,6 +60,8 @@ fun_menu = [
     ["💪 انگیزشی", "✨ متن"],
     ["🎲 تاس", "🪙 شیر یا خط"],
     ["🧩 چیستان", "✂️ سنگ کاغذ قیچی"],
+    ["🎯 حدس کلمه", "🏳️ حدس پرچم"],
+    ["⚔️ دوئل", "🚔 دزد و پلیس"],
     ["🔙 برگشت"]
 ]
 
@@ -259,6 +267,11 @@ async def menu_handler(update: Update, context):
     elif c == "برگشت":
         await update.message.reply_text("🏠 منوی اصلی:", reply_markup=main_kb())
 
+    elif c == "حدس کلمه": await word_guess_start(update, context)
+    elif c == "حدس پرچم": await flag_guess_start(update, context)
+    elif c == "دوئل": await duel_start(update, context)
+    elif c == "دزد و پلیس": await cop_game_start(update, context)
+
     # ─── سرگرمی ───
     elif c == "جوک": await update.message.reply_text(get_joke())
     elif c == "فکت": await update.message.reply_text(get_fact())
@@ -311,9 +324,15 @@ app.add_handler(CommandHandler("transfer", transfer))
 app.add_handler(CommandHandler("loan", loan))
 app.add_handler(CommandHandler("payloan", payloan))
 
+app.add_handler(CommandHandler("duel", duel_start))
+app.add_handler(CommandHandler("wordguess", word_guess_start))
+app.add_handler(CommandHandler("flagguess", flag_guess_start))
+app.add_handler(CommandHandler("copgame", cop_game_start))
+
 app.add_handler(
-    MessageHandler(
-        filters.Regex(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, games_handler),
+    group=0
+)
             r"^(قفل لینک|حذف قفل لینک|قفل فوروارد|حذف قفل فوروارد|"
             r"قفل یوزرنیم|حذف قفل یوزرنیم|قفل عکس|حذف قفل عکس|"
             r"قفل ویدیو|حذف قفل ویدیو|قفل فایل|حذف قفل فایل|"
