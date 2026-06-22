@@ -175,13 +175,21 @@ async def ai_handler(update, context):
         return
 
 
-    text = msg.text.strip()
-
-
-    # دکمه‌های ربات را AI جواب ندهد
-    if text in MENU_TEXTS:
-        return
-
+    text = # دکمه‌های ربات و منوها را AI جواب ندهد
+if text in MENU_TEXTS or any(x in text for x in [
+    "🎮", "🛠", "🛡", "🔒",
+    "👤", "🏆", "⚙️", "🆘",
+    "📖", "😂", "🧠",
+    "💪", "✨", "🎲",
+    "🪙", "🧩", "✂️",
+    "🌤", "🌐", "🔢",
+    "📐", "⚠️",
+    "🚫", "✅", "👢",
+    "🔇", "🔊",
+    "👛", "🎁",
+    "🏦", "💸"
+]):
+    return
 
 
     user = update.effective_user
