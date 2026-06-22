@@ -8,65 +8,44 @@ TAVILY_API_KEY = "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"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 TAVILY_URL = "https://api.tavily.com/search"
 
-SYSTEM_PROMPT = """تو Sector AI هستی، دستیار باهوش و صمیمی گروه تلگرامی SectorLand.
+SYSTEM_PROMPT = """
+تو Sector AI هستی، دستیار باهوش و صمیمی گروه تلگرامی SectorLand.
 
-شخصیت:
-- فارسی روون و خودمونی صحبت میکنی
-- از ایموجی استفاده میکنی  
-- جواب‌هات کوتاه و مفیده (۲-۴ جمله)
-- با کاربر دوستانه و شوخ‌طبع هستی
+- فارسی روون و خودمونی صحبت کن
+- ایموجی استفاده کن
+- جواب‌ها کوتاه و مفید باشن
+- دوستانه و شوخ‌طبع باش
+"""
 
-وقتی اطلاعات جستجو بهت داده میشه:
-- اطلاعات رو خلاصه و ساده بگو
-- منبع رو ذکر نکن
-- فارسی توضیح بده
-- عدد و رقم دقیق بده"""
 
 MENU_TEXTS = {
-    # منوی اصلی
     "🎮 سرگرمی", "🛠 کاربردی", "🛡 مدیریت", "🔒 قفل‌ها",
-    "👤 پروفایل", "🏆 رتبه‌بندی", "⚙️ تنظیمات", "🆘 پشتیبانی",
-    "🤖 Sector AI", "📖 فال حافظ", "💰 سکه و بانک", "🔙 برگشت",
-    # سرگرمی
-    "😂 جوک", "🧠 فکت", "💪 انگیزشی", "✨ متن",
-    "🎲 تاس", "🪙 شیر یا خط", "🧩 چیستان", "✂️ سنگ کاغذ قیچی",
-    "🎯 حدس کلمه", "🏳️ حدس پرچم", "⚔️ دوئل", "🚔 دزد و پلیس",
-    # بازی‌ها (پاسخ‌های کاربر)
-    "سنگ", "کاغذ", "قیچی", "قبول", "رد", "میام", "شروع دزد",
-    # کاربردی
-    "🌤 آب و هوا", "🌐 ترجمه", "🔢 حساب‌گر", "📐 تبدیل واحد",
-    # مدیریت
-    "⚠️ اخطار", "🧹 پاک اخطار", "📋 اخطارها",
-    "🚫 بن", "✅ آنبن", "👢 کیک", "🔇 میوت", "🔊 آنمیوت",
-    "⚙️ تنظیم حد اخطار",
-    # قفل‌ها
-    "قفل لینک", "حذف قفل لینک", "قفل فوروارد", "حذف قفل فوروارد",
-    "قفل یوزرنیم", "حذف قفل یوزرنیم", "قفل عکس", "حذف قفل عکس",
-    "قفل ویدیو", "حذف قفل ویدیو", "قفل فایل", "حذف قفل فایل",
-    "قفل استیکر", "حذف قفل استیکر",
-    # تنظیمات
-    "🟢 ضداسپم روشن کن", "🔴 ضداسپم خاموش کن",
-    "🟢 فیلتر لینک روشن کن", "🔴 فیلتر لینک خاموش کن",
-    "🟢 فیلتر منشن روشن کن", "🔴 فیلتر منشن خاموش کن",
-    "🟢 خوش‌آمدگویی روشن کن", "🔴 خوش‌آمدگویی خاموش کن",
-    "✏️ تغییر پیام خوش‌آمد", "📜 قوانین گروه",
-    # بانک
-    "👛 کیف پول", "🎁 جایزه روزانه", "🏦 واریز",
-    "💸 برداشت", "🤝 انتقال سکه", "📛 وام",
+    "👤 پروفایل", "🏆 رتبه‌بندی", "⚙️ تنظیمات",
+    "🆘 پشتیبانی", "📖 فال حافظ",
+    "😂 جوک", "🧠 فکت", "💪 انگیزشی",
+    "✨ متن", "🎲 تاس", "🪙 شیر یا خط",
+    "🧩 چیستان", "✂️ سنگ کاغذ قیچی",
+    "سنگ", "کاغذ", "قیچی",
+    "🌤 آب و هوا", "🌐 ترجمه",
+    "🔢 حساب‌گر", "📐 تبدیل واحد",
+    "⚠️ اخطار", "🚫 بن",
+    "✅ آنبن", "👢 کیک",
+    "🔇 میوت", "🔊 آنمیوت",
+    "👛 کیف پول", "🎁 جایزه روزانه",
+    "🏦 واریز", "💸 برداشت",
 }
 
-# کلمات کلیدی که نیاز به جستجو دارن
+
 SEARCH_TRIGGERS = [
-    "قیمت", "طلا", "سکه", "دلار", "یورو", "ارز",
-    "آب و هوا", "هوا", "دما", "باران", "برف",
-    "خبر", "اخبار", "امروز", "جدیدترین",
-    "موبایل", "گوشی", "ماشین", "خودرو",
-    "بورس", "سهام", "ارز دیجیتال", "بیتکوین",
+    "قیمت", "طلا", "سکه",
+    "دلار", "ارز",
+    "هوا", "خبر",
+    "اخبار"
 ]
 
 
-async def search_web(query: str) -> str:
-    """جستجو در اینترنت با Tavily"""
+async def search_web(query):
+
     try:
         payload = {
             "api_key": TAVILY_API_KEY,
@@ -75,184 +54,197 @@ async def search_web(query: str) -> str:
             "max_results": 3,
             "include_answer": True
         }
+
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 TAVILY_URL,
                 json=payload,
-                timeout=aiohttp.ClientTimeout(total=10)
+                timeout=10
             ) as resp:
-                if resp.status != 200:
-                    return ""
+
                 data = await resp.json()
 
-                # اگه جواب مستقیم داشت
                 if data.get("answer"):
-                    return f"[نتیجه جستجو: {data['answer']}]"
+                    return data["answer"]
 
-                # وگرنه از نتایج استفاده کن
-                results = data.get("results", [])
-                if not results:
-                    return ""
+                return ""
 
-                snippets = []
-                for r in results[:2]:
-                    content = r.get("content", "")[:200]
-                    if content:
-                        snippets.append(content)
-
-                return f"[نتایج جستجو: {' | '.join(snippets)}]"
     except Exception as e:
-        print(f"Tavily error: {e}")
+        print("Tavily error:", e)
         return ""
 
 
-async def ask_groq(user_message: str, user_name: str = "", search_context: str = "") -> str:
-    content = f"نام کاربر: {user_name}\n"
-    if search_context:
-        content += f"اطلاعات از اینترنت: {search_context}\n"
-    content += f"پیام کاربر: {user_message}"
+
+async def ask_groq(
+    user_message,
+    user_name="",
+    search_context=""
+):
+
+    content = f"""
+نام کاربر: {user_name}
+
+{search_context}
+
+پیام:
+{user_message}
+"""
+
 
     payload = {
-    "model": "llama-3.3-70b-versatile",
-    "messages": [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": content}
-    ],
-    "temperature": 0.7,
-    "max_tokens": 400
-}
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            },
+            {
+                "role": "user",
+                "content": content
+            }
+        ],
+        "temperature": 0.7,
+        "max_tokens": 400
+    }
+
 
     try:
+
         async with aiohttp.ClientSession() as session:
+
             async with session.post(
                 GROQ_URL,
                 json=payload,
                 headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {GROQ_API_KEY}"
+                    "Authorization":
+                    f"Bearer {GROQ_API_KEY}",
+                    "Content-Type":
+                    "application/json"
                 },
-                timeout=aiohttp.ClientTimeout(total=20)
+                timeout=20
             ) as resp:
+
+
                 data = await resp.json()
+
+
                 if resp.status != 200:
-                    print(f"Groq error: {data}")
-                    return "🤖 یه لحظه مشکل داشتم، دوباره بپرس!"
+                    print("Groq error:", data)
+                    return "🤖 مشکل موقت دارم، دوباره بفرست"
+
+
                 return data["choices"][0]["message"]["content"]
+
+
     except Exception as e:
-        print(f"Groq exception: {e}")
-        return "🤖 خطای اتصال، دوباره امتحان کن!"
+        print("Groq exception:", e)
+        return "🤖 خطای اتصال"
 
 
-def needs_search(text: str) -> bool:
-    """چک میکنه آیا پیام نیاز به جستجو داره"""
-    text_lower = text.lower()
-    return any(trigger in text_lower for trigger in SEARCH_TRIGGERS)
 
+def needs_search(text):
 
-def build_search_query(text: str) -> str:
-    """query جستجو رو میسازه"""
-    today = datetime.now().strftime("%Y-%m-%d")
-    if any(w in text for w in ["قیمت", "طلا", "سکه", "دلار", "ارز"]):
-        return f"قیمت روز {text} {today} ایران"
-    if any(w in text for w in ["هوا", "آب و هوا", "دما"]):
-        return f"آب و هوا {text} امروز"
-    if any(w in text for w in ["خبر", "اخبار"]):
-        return f"اخبار امروز ایران {today}"
-    return f"{text} {today}"
+    return any(
+        x in text.lower()
+        for x in SEARCH_TRIGGERS
+    )
+
 
 
 HAFEZ = [
-    "الا یا ایها الساقی ادر کاساً و ناولها\nکه عشق آسان نمود اول ولی افتاد مشکل‌ها\n\n✨ تفسیر: مسیر سختی در پیش داری، ولی پایانش شیرینه.",
-    "بیا که قصر امل سخت سست بنیاد است\nبیار باده که بنیاد عمر بر باد است\n\n✨ تفسیر: از لحظه حال لذت ببر، فرصت رو از دست نده.",
-    "حافظ اسرار الهی کس نمی‌داند خموش\nاز که می‌پرسی که دور روزگاران را چه شد\n\n✨ تفسیر: صبر کن، جواب سوالت به زودی روشن میشه.",
-    "خوشا دلی که مدام از پی نظر نرود\nبه هر درِ که بزد مشتری بدر نرود\n\n✨ تفسیر: روی هدفت تمرکز کن، پراکنده نباش.",
-    "شب تاریک و بیم موج و گردابی چنین هائل\nکجا دانند حال ما سبکباران ساحل‌ها\n\n✨ تفسیر: سختی‌های تو رو کسی درک نمیکنه، ولی از پسش برمیای.",
+    "✨ امروز بهت خوش میگذره، صبور باش.",
+    "🌱 مسیرت سختی داره ولی موفق میشی.",
+    "⭐ خبرهای خوب نزدیکه."
 ]
 
 
 def get_fal():
-    return f"📖 <b>فال حافظ</b>\n\n{random.choice(HAFEZ)}"
+
+    return (
+        "📖 فال حافظ\n\n"
+        + random.choice(HAFEZ)
+    )
+
 
 
 async def ai_handler(update, context):
+
     msg = update.message
+
     if not msg or not msg.text:
         return
 
-    user = update.effective_user
+
     text = msg.text.strip()
 
+
+    # دکمه‌های ربات را AI جواب ندهد
     if text in MENU_TEXTS:
         return
 
-    is_private = update.effective_chat.type == "private"
-    is_group = update.effective_chat.type in ["group", "supergroup"]
-    is_reply_to_bot = (
-        msg.reply_to_message is not None and
-        msg.reply_to_message.from_user is not None and
-        msg.reply_to_message.from_user.is_bot
+
+
+    user = update.effective_user
+
+
+    await context.bot.send_chat_action(
+        update.effective_chat.id,
+        "typing"
     )
-    trigger_words = ["ربات سکتور", "sector ai"]
-    is_triggered = any(t in text.lower() for t in trigger_words)
-    bot_username = (context.bot.username or "").lower()
-    is_mentioned = f"@{bot_username}" in text.lower()
 
-    # توی گروه فقط وقتی صریحاً صدا زده بشه جواب بده
-    if is_group and not (is_reply_to_bot or is_triggered or is_mentioned):
-        return
-    # توی غیر پیوی و بدون صدا زدن هم جواب نده
-    if not is_private and not (is_reply_to_bot or is_triggered or is_mentioned):
-        return
 
-    # اگه پیام قبلاً توسط منو یا بازی‌ها پردازش شده، جواب نده
-    if context.user_data.get("handled"):
-        context.user_data["handled"] = False
-        return
-
-    if "فال" in text:
-        await msg.reply_text(get_fal(), parse_mode="HTML")
-        return
-
-    await context.bot.send_chat_action(update.effective_chat.id, "typing")
-
-    # جستجو در اینترنت اگه نیاز بود
     search_context = ""
+
+
     if needs_search(text):
-        await context.bot.send_chat_action(update.effective_chat.id, "typing")
-        query = build_search_query(text)
-        search_context = await search_web(query)
 
-    response = await ask_groq(text, user.first_name, search_context)
-    await msg.reply_text(response)
+        search_context = await search_web(text)
 
 
-async def ai_ban_reaction(update, context, banned_user_name: str):
-    reactions = [
-        f"🚨 {banned_user_name} از گروه پرتاب شد! خداحافظ 👋",
-        f"🔨 {banned_user_name} به تاریخ پیوست 😅",
-        f"🚫 {banned_user_name} بن شد. قوانین شوخی بردار نیست!",
-    ]
-    await update.message.reply_text(random.choice(reactions))
+
+    answer = await ask_groq(
+        text,
+        user.first_name,
+        search_context
+    )
 
 
-async def ai_kick_reaction(update, context, kicked_user_name: str):
-    reactions = [
-        f"👢 {kicked_user_name} کیک خورد! شاید دفعه دیگه مؤدب‌تر باشه 😄",
-        f"🚪 {kicked_user_name} از در رفت بیرون!",
-        f"👋 {kicked_user_name} فعلاً برو، شاید بعداً برگردی!",
-    ]
-    await update.message.reply_text(random.choice(reactions))
+    await msg.reply_text(answer)
 
 
-async def ai_warn_reaction(update, context, warned_user_name: str, count: int, limit: int):
-    if count >= limit - 1:
-        await update.message.reply_text(
-            f"⚠️ {warned_user_name} یه قدم تا بن فاصله داری! مراقب باش 😬"
-        )
-    else:
-        reactions = [
-            f"🤨 {warned_user_name}، داری اشتباه میری!",
-            f"😤 {warned_user_name} اخطار گرفت. ادامه بده ببین چی میشه!",
-        ]
-        await update.message.reply_text(random.choice(reactions))
 
+async def ai_ban_reaction(
+    update,
+    context,
+    banned_user_name
+):
+
+    await update.message.reply_text(
+        f"🚫 {banned_user_name} بن شد 😅"
+    )
+
+
+
+async def ai_kick_reaction(
+    update,
+    context,
+    kicked_user_name
+):
+
+    await update.message.reply_text(
+        f"👢 {kicked_user_name} کیک شد"
+    )
+
+
+
+async def ai_warn_reaction(
+    update,
+    context,
+    warned_user_name,
+    count,
+    limit
+):
+
+    await update.message.reply_text(
+        f"⚠️ {warned_user_name} اخطار گرفت"
+    )
