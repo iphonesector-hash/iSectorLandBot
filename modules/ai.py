@@ -23,25 +23,36 @@ SYSTEM_PROMPT = """تو Sector AI هستی، دستیار باهوش و صمیم
 - عدد و رقم دقیق بده"""
 
 MENU_TEXTS = {
+    # منوی اصلی
     "🎮 سرگرمی", "🛠 کاربردی", "🛡 مدیریت", "🔒 قفل‌ها",
     "👤 پروفایل", "🏆 رتبه‌بندی", "⚙️ تنظیمات", "🆘 پشتیبانی",
-    "🤖 Sector AI", "📖 فال حافظ", "🔙 برگشت",
+    "🤖 Sector AI", "📖 فال حافظ", "💰 سکه و بانک", "🔙 برگشت",
+    # سرگرمی
     "😂 جوک", "🧠 فکت", "💪 انگیزشی", "✨ متن",
     "🎲 تاس", "🪙 شیر یا خط", "🧩 چیستان", "✂️ سنگ کاغذ قیچی",
+    "🎯 حدس کلمه", "🏳️ حدس پرچم", "⚔️ دوئل", "🚔 دزد و پلیس",
+    # بازی‌ها (پاسخ‌های کاربر)
+    "سنگ", "کاغذ", "قیچی", "قبول", "رد", "میام", "شروع دزد",
+    # کاربردی
     "🌤 آب و هوا", "🌐 ترجمه", "🔢 حساب‌گر", "📐 تبدیل واحد",
+    # مدیریت
     "⚠️ اخطار", "🧹 پاک اخطار", "📋 اخطارها",
     "🚫 بن", "✅ آنبن", "👢 کیک", "🔇 میوت", "🔊 آنمیوت",
     "⚙️ تنظیم حد اخطار",
+    # قفل‌ها
     "قفل لینک", "حذف قفل لینک", "قفل فوروارد", "حذف قفل فوروارد",
     "قفل یوزرنیم", "حذف قفل یوزرنیم", "قفل عکس", "حذف قفل عکس",
     "قفل ویدیو", "حذف قفل ویدیو", "قفل فایل", "حذف قفل فایل",
     "قفل استیکر", "حذف قفل استیکر",
+    # تنظیمات
     "🟢 ضداسپم روشن کن", "🔴 ضداسپم خاموش کن",
     "🟢 فیلتر لینک روشن کن", "🔴 فیلتر لینک خاموش کن",
     "🟢 فیلتر منشن روشن کن", "🔴 فیلتر منشن خاموش کن",
     "🟢 خوش‌آمدگویی روشن کن", "🔴 خوش‌آمدگویی خاموش کن",
     "✏️ تغییر پیام خوش‌آمد", "📜 قوانین گروه",
-    "سنگ", "کاغذ", "قیچی",
+    # بانک
+    "👛 کیف پول", "🎁 جایزه روزانه", "🏦 واریز",
+    "💸 برداشت", "🤝 انتقال سکه", "📛 وام",
 }
 
 # کلمات کلیدی که نیاز به جستجو دارن
@@ -102,7 +113,7 @@ async def ask_groq(user_message: str, user_name: str = "", search_context: str =
     content += f"پیام کاربر: {user_message}"
 
     payload = {
-        "model": "llama-3.3-70b-versatile",
+        "model": "mixtral-8x7b-32768",
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": content}
@@ -175,6 +186,7 @@ async def ai_handler(update, context):
         return
 
     is_private = update.effective_chat.type == "private"
+    is_group = update.effective_chat.type in ["group", "supergroup"]
     is_reply_to_bot = (
         msg.reply_to_message is not None and
         msg.reply_to_message.from_user is not None and
@@ -185,7 +197,11 @@ async def ai_handler(update, context):
     bot_username = (context.bot.username or "").lower()
     is_mentioned = f"@{bot_username}" in text.lower()
 
-    if not (is_private or is_reply_to_bot or is_triggered or is_mentioned):
+    # توی گروه فقط وقتی صریحاً صدا زده بشه جواب بده
+    if is_group and not (is_reply_to_bot or is_triggered or is_mentioned):
+        return
+    # توی غیر پیوی و بدون صدا زدن هم جواب نده
+    if not is_private and not (is_reply_to_bot or is_triggered or is_mentioned):
         return
 
     if "فال" in text:
@@ -234,3 +250,4 @@ async def ai_warn_reaction(update, context, warned_user_name: str, count: int, l
             f"😤 {warned_user_name} اخطار گرفت. ادامه بده ببین چی میشه!",
         ]
         await update.message.reply_text(random.choice(reactions))
+
