@@ -174,25 +174,51 @@ async def ai_handler(update, context):
     if not msg or not msg.text:
         return
 
+    text = msg.text.strip()
 
-    text = # دکمه‌های ربات و منوها را AI جواب ندهد
-if text in MENU_TEXTS or any(x in text for x in [
-    "🎮", "🛠", "🛡", "🔒",
-    "👤", "🏆", "⚙️", "🆘",
-    "📖", "😂", "🧠",
-    "💪", "✨", "🎲",
-    "🪙", "🧩", "✂️",
-    "🌤", "🌐", "🔢",
-    "📐", "⚠️",
-    "🚫", "✅", "👢",
-    "🔇", "🔊",
-    "👛", "🎁",
-    "🏦", "💸"
-]):
-    return
+
+    # دکمه‌ها و منوهای ربات توسط AI جواب داده نشوند
+    if text in MENU_TEXTS or any(x in text for x in [
+        "🎮", "🛠", "🛡", "🔒",
+        "👤", "🏆", "⚙️", "🆘",
+        "📖", "😂", "🧠",
+        "💪", "✨", "🎲",
+        "🪙", "🧩", "✂️",
+        "🌤", "🌐", "🔢",
+        "📐", "⚠️",
+        "🚫", "✅", "👢",
+        "🔇", "🔊",
+        "👛", "🎁",
+        "🏦", "💸"
+    ]):
+        return
+
+
+    # اگر پیام دستور تلگرام بود
+    if text.startswith("/"):
+        return
 
 
     user = update.effective_user
+
+
+    # در گروه فقط وقتی AI صدا زده شد جواب بده
+    chat_type = update.effective_chat.type
+
+    if chat_type in ["group", "supergroup"]:
+
+        bot_username = (context.bot.username or "").lower()
+
+        is_reply = (
+            msg.reply_to_message
+            and msg.reply_to_message.from_user
+            and msg.reply_to_message.from_user.is_bot
+        )
+
+        is_mention = f"@{bot_username}" in text.lower()
+
+        if not is_reply and not is_mention:
+            return
 
 
     await context.bot.send_chat_action(
@@ -203,11 +229,8 @@ if text in MENU_TEXTS or any(x in text for x in [
 
     search_context = ""
 
-
     if needs_search(text):
-
         search_context = await search_web(text)
-
 
 
     answer = await ask_groq(
@@ -218,10 +241,6 @@ if text in MENU_TEXTS or any(x in text for x in [
 
 
     await msg.reply_text(answer)
-
-
-
-async def ai_ban_reaction(
     update,
     context,
     banned_user_name
