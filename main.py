@@ -66,11 +66,6 @@ from modules.admin import (
 )
 
 from modules.settings import (
-    settings_handler,
-    toggle_setting,
-    set_welcome,
-    rules_handler,
-    set_rules_handler,
     welcome_new_member
 )
 
@@ -79,9 +74,6 @@ from modules.locks import (
 )
 
 from config import TOKEN, BOT_NAME
-
-
-OWNER_ID = 5147526780
 
 
 main_menu = [
@@ -161,8 +153,7 @@ async def menu_handler(update, context):
     if not update.message or not update.message.text:
         return
 
-    text = update.message.text.strip()
-    c = clean(text)
+    c = clean(update.message.text)
 
 
     if c == "برگشت":
@@ -190,38 +181,26 @@ async def menu_handler(update, context):
 
 
     if c == "فال حافظ":
-        await update.message.reply_text(
-            await get_fal(smart_ai),
-            parse_mode="HTML"
-        )
+        await update.message.reply_text(await get_fal(smart_ai))
         return
 
 
     if c == "جوک":
-        await update.message.reply_text(
-            await get_joke(smart_ai)
-        )
+        await update.message.reply_text(await get_joke(smart_ai))
         return
 
 
     if c == "فکت":
-        await update.message.reply_text(
-            await get_fact(smart_ai)
-        )
+        await update.message.reply_text(await get_fact(smart_ai))
         return
 
-
     if c == "انگیزشی":
-        await update.message.reply_text(
-            await get_motive(smart_ai)
-        )
+        await update.message.reply_text(await get_motive(smart_ai))
         return
 
 
     if c == "متن":
-        await update.message.reply_text(
-            await get_text(smart_ai)
-        )
+        await update.message.reply_text(await get_text(smart_ai))
         return
 
 
@@ -250,10 +229,8 @@ async def menu_handler(update, context):
         return
 
 
-    if c in ["سنگ","کاغذ","قیچی"]:
-        await update.message.reply_text(
-            rps(c)
-        )
+    if c in ["سنگ", "کاغذ", "قیچی"]:
+        await update.message.reply_text(rps(c))
         return
 
 
@@ -264,9 +241,9 @@ async def menu_handler(update, context):
 
     if c == "رتبه‌بندی":
         await leaderboard_handler(update, context)
-        retur
+        return
 
-        
+
     if c == "سکه و بانک":
         await update.message.reply_text(
             "💰 بخش بانک:",
@@ -305,36 +282,79 @@ async def menu_handler(update, context):
         return
 
 
-    if c in ["آب و هوا", "ترجمه", "حساب‌گر", "تبدیل واحد"]:
+    if c in [
+        "آب و هوا",
+        "ترجمه",
+        "حساب‌گر",
+        "تبدیل واحد"
+    ]:
         await useful_handler(update, context)
         return
 
 
     if update.effective_chat.type != "private":
         add_message(update.effective_user)
-        add_coins_from_message(update.effective_user, 1)
+        add_coins_from_message(
+            update.effective_user,
+            1
+        )
 
 
 
 app = Application.builder().token(TOKEN).build()
 
 
+app.add_handler(
+    CommandHandler("start", start)
+)
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("profile", profile_handler))
-app.add_handler(CommandHandler("top", leaderboard_handler))
+app.add_handler(
+    CommandHandler("profile", profile_handler)
+)
 
-app.add_handler(CommandHandler("warn", warn))
-app.add_handler(CommandHandler("ban", ban))
-app.add_handler(CommandHandler("unban", unban))
-app.add_handler(CommandHandler("kick", kick))
-app.add_handler(CommandHandler("mute", mute))
-app.add_handler(CommandHandler("unmute", unmute))
+app.add_handler(
+    CommandHandler("top", leaderboard_handler)
+)
 
-app.add_handler(CommandHandler("weather", weather))
-app.add_handler(CommandHandler("translate", translate))
-app.add_handler(CommandHandler("calc", calculate))
-app.add_handler(CommandHandler("convert", convert_unit))
+
+app.add_handler(
+    CommandHandler("warn", warn)
+)
+
+app.add_handler(
+    CommandHandler("ban", ban)
+)
+
+app.add_handler(
+    CommandHandler("unban", unban)
+)
+
+app.add_handler(
+    CommandHandler("kick", kick)
+)
+
+app.add_handler(
+    CommandHandler("mute", mute)
+)
+
+app.add_handler(
+    CommandHandler("unmute", unmute)
+)
+app.add_handler(
+    CommandHandler("weather", weather)
+)
+
+app.add_handler(
+    CommandHandler("translate", translate)
+)
+
+app.add_handler(
+    CommandHandler("calc", calculate)
+)
+
+app.add_handler(
+    CommandHandler("convert", convert_unit)
+)
 
 
 app.add_handler(
@@ -345,49 +365,47 @@ app.add_handler(
 )
 
 
-# اول منوها
+# منوها اول
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         menu_handler
     ),
-    group=1
+    group=0
 )
 
 
-# بعد بازی‌ها
+# بازی‌ها بعد
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         games_handler
     ),
-    group=2
+    group=1
 )
 
 
-# هوش مصنوعی آخر
+# هوش مصنوعی
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
         ai_handler
     ),
-    group=4
+    group=2
 )
 
 
-# قفل‌ها آخر از همه
+# قفل‌ها آخر
 app.add_handler(
     MessageHandler(
         filters.ALL & ~filters.COMMAND,
         check_locks
     ),
-    group=5
+    group=3
 )
-
 
 
 print(f"✅ {BOT_NAME} Started!")
 
 
 app.run_polling()
-        
