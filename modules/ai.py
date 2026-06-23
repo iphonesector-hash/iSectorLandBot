@@ -1,218 +1,198 @@
+
+
 import aiohttp
 import random
+from datetime import datetime
 
-
-# ================= KEYS =================
-
-GEMINI_API_KEY = "AQ.Ab8RN6J3OjaX1IV22MIPy_fbIdyZpja68vqYpy_jm_qp0Hm7Kw"
-
-DEEPSEEK_API_KEY = "sk-0faf5666a01646cab6961f8fb5301568"
-
-GROQ_API_KEY = "gsk_ivhp9RULN9ktGQlN4YOEWGdyb3FY9b-ZT47MQZqHnJAdb6K1T0od9"
-
-TAVILY_API_KEY = " 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-UEx987lGw4"
-
-
-# ================= URL =================
-
-GEMINI_URL = (
-"https://generativelanguage.googleapis.com/v1beta/models/"
-"gemini-2.5-flash:generateContent"
-)
-
-DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
+GROQ_API_KEY = "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"
+TAVILY_API_KEY = "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"
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-
 TAVILY_URL = "https://api.tavily.com/search"
 
-
 SYSTEM_PROMPT = """
-تو Sector AI هستی، دستیار هوشمند SectorLand.
-فارسی روان و خودمونی حرف بزن
-ایموجی استفاده کن
-کوتاه و مفید جواب بده
+تو Sector AI هستی، دستیار باهوش و صمیمی گروه تلگرامی SectorLand.
+
+- فارسی روون و خودمونی صحبت کن
+- ایموجی استفاده کن
+- جواب‌ها کوتاه و مفید باشن
+- دوستانه و شوخ‌طبع باش
 """
 
 
 MENU_TEXTS = {
-"🎮 سرگرمی","🛠 کاربردی","🛡 مدیریت",
-"🔒 قفل‌ها","👤 پروفایل","🏆 رتبه‌بندی",
-"⚙️ تنظیمات","🆘 پشتیبانی",
-"📖 فال حافظ"
+    "🎮 سرگرمی", "🛠 کاربردی", "🛡 مدیریت", "🔒 قفل‌ها",
+    "👤 پروفایل", "🏆 رتبه‌بندی", "⚙️ تنظیمات",
+    "🆘 پشتیبانی", "📖 فال حافظ",
+    "😂 جوک", "🧠 فکت", "💪 انگیزشی",
+    "✨ متن", "🎲 تاس", "🪙 شیر یا خط",
+    "🧩 چیستان", "✂️ سنگ کاغذ قیچی",
+    "سنگ", "کاغذ", "قیچی",
+    "🌤 آب و هوا", "🌐 ترجمه",
+    "🔢 حساب‌گر", "📐 تبدیل واحد",
+    "⚠️ اخطار", "🚫 بن",
+    "✅ آنبن", "👢 کیک",
+    "🔇 میوت", "🔊 آنمیوت",
+    "👛 کیف پول", "🎁 جایزه روزانه",
+    "🏦 واریز", "💸 برداشت",
 }
 
 
-SEARCH = [
-"قیمت","طلا","دلار",
-"ارز","خبر","اخبار",
-"هوا","آب و هوا"
+SEARCH_TRIGGERS = [
+    "قیمت", "طلا", "سکه",
+    "دلار", "ارز",
+    "هوا", "خبر",
+    "اخبار"
 ]
 
 
-async def search_web(text):
+async def search_web(query):
 
     try:
-        payload={
-        "api_key":TAVILY_API_KEY,
-        "query":text,
-        "max_results":3,
-        "include_answer":True
+        payload = {
+            "api_key": TAVILY_API_KEY,
+            "query": query,
+            "search_depth": "basic",
+            "max_results": 3,
+            "include_answer": True
         }
 
-        async with aiohttp.ClientSession() as s:
-            async with s.post(
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
                 TAVILY_URL,
                 json=payload,
                 timeout=10
-            ) as r:
+            ) as resp:
 
-                data=await r.json()
-                return data.get("answer","")
+                data = await resp.json()
+
+                if data.get("answer"):
+                    return data["answer"]
+
+                return ""
 
     except Exception as e:
-        print("SEARCH ERROR:",e)
+        print("Tavily error:", e)
         return ""
 
 
 
-async def ask_openai_style(url,key,model,text,name,search=""):
+async def ask_groq(
+    user_message,
+    user_name="",
+    search_context=""
+):
 
-    payload={
-    "model":model,
-    "messages":[
-        {
-        "role":"system",
-        "content":SYSTEM_PROMPT
-        },
-        {
-        "role":"user",
-        "content":f"""
-نام:
-{name}
+    content = f"""
+نام کاربر: {user_name}
 
-اطلاعات:
-{search}
+{search_context}
 
 پیام:
-{text}
+{user_message}
 """
-        }
-    ],
-    "temperature":0.7
-    }
 
 
-    async with aiohttp.ClientSession() as s:
-
-        async with s.post(
-            url,
-            json=payload,
-            headers={
-            "Authorization":f"Bearer {key}",
-            "Content-Type":"application/json"
-            },
-            timeout=20
-        ) as r:
-
-            data=await r.json()
-
-            if r.status != 200:
-                print("AI API ERROR:",data)
-                raise Exception(data)
-
-            return data["choices"][0]["message"]["content"]
-
-
-
-async def ask_gemini(text,name,search=""):
-
-    payload={
-    "contents":[
-        {
-        "parts":[
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
             {
-            "text":f"""
-{SYSTEM_PROMPT}
-
-نام:
-{name}
-
-{search}
-
-پیام:
-{text}
-"""
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            },
+            {
+                "role": "user",
+                "content": content
             }
-        ]
-        }
-    ]
+        ],
+        "temperature": 0.7,
+        "max_tokens": 400
     }
 
 
-    async with aiohttp.ClientSession() as s:
+    try:
 
-        async with s.post(
-            GEMINI_URL + f"?key={GEMINI_API_KEY}",
-            json=payload,
-            timeout=20
-        ) as r:
+        async with aiohttp.ClientSession() as session:
 
-
-            data=await r.json()
-
-            if r.status != 200:
-                print("GEMINI ERROR:",data)
-                raise Exception(data)
-
-            return data["candidates"][0]["content"]["parts"][0]["text"]
-
+            async with session.post(
+                GROQ_URL,
+                json=payload,
+                headers={
+                    "Authorization":
+                    f"Bearer {GROQ_API_KEY}",
+                    "Content-Type":
+                    "application/json"
+                },
+                timeout=20
+            ) as resp:
 
 
-async def ask_deepseek(text,name,search=""):
+                data = await resp.json()
 
-    return await ask_openai_style(
-    DEEPSEEK_URL,
-    DEEPSEEK_API_KEY,
-    "deepseek-chat",
-    text,
-    name,
-    search
+
+                if resp.status != 200:
+                    print("Groq error:", data)
+                    return "🤖 مشکل موقت دارم، دوباره بفرست"
+
+
+                return data["choices"][0]["message"]["content"]
+
+
+    except Exception as e:
+        print("Groq exception:", e)
+        return "🤖 خطای اتصال"
+
+
+
+def needs_search(text):
+
+    return any(
+        x in text.lower()
+        for x in SEARCH_TRIGGERS
     )
 
 
 
-async def ask_groq(text,name,search=""):
+HAFEZ = [
+    "✨ امروز بهت خوش میگذره، صبور باش.",
+    "🌱 مسیرت سختی داره ولی موفق میشی.",
+    "⭐ خبرهای خوب نزدیکه."
+]
 
-    return await ask_openai_style(
-    GROQ_URL,
-    GROQ_API_KEY,
-    "llama-3.3-70b-versatile",
-    text,
-    name,
-    search
+
+def get_fal():
+
+    return (
+        "📖 فال حافظ\n\n"
+        + random.choice(HAFEZ)
     )
 
 
 
-def need_search(text):
+async def ai_handler(update, context):
 
-    return any(x in text.lower() for x in SEARCH)
-
-
-
-async def ai_handler(update,context):
-
-    msg=update.message
+    msg = update.message
 
     if not msg or not msg.text:
         return
 
+    text = msg.text.strip()
 
-    text=msg.text.strip()
 
-
-    if text in MENU_TEXTS:
+    # دکمه‌های ربات جواب AI ندهند
+    if text in MENU_TEXTS or any(x in text for x in [
+        "🎮","🛠","🛡","🔒",
+        "👤","🏆","⚙️","🆘",
+        "📖","😂","🧠",
+        "💪","✨","🎲",
+        "🪙","🧩","✂️",
+        "🌤","🌐","🔢",
+        "📐","⚠️",
+        "🚫","✅","👢",
+        "🔇","🔊",
+        "👛","🎁",
+        "🏦","💸"
+    ]):
         return
 
 
@@ -220,83 +200,79 @@ async def ai_handler(update,context):
         return
 
 
-    if update.effective_chat.type in [
-        "group",
-        "supergroup"
-    ]:
+    user = update.effective_user
 
-        bot=(context.bot.username or "").lower()
 
-        if f"@{bot}" not in text.lower():
+    # گروه فقط با صدا زدن جواب بده
+    if update.effective_chat.type in ["group","supergroup"]:
+
+        bot_username = (context.bot.username or "").lower()
+
+        reply_bot = (
+            msg.reply_to_message
+            and msg.reply_to_message.from_user
+            and msg.reply_to_message.from_user.is_bot
+        )
+
+        mention = f"@{bot_username}" in text.lower()
+
+        if not reply_bot and not mention:
             return
 
 
-    user=update.effective_user
-
-
     await context.bot.send_chat_action(
-    update.effective_chat.id,
-    "typing"
+        update.effective_chat.id,
+        "typing"
     )
 
 
-    search=""
+    search_context = ""
 
-    if need_search(text):
-        search=await search_web(text)
+    if needs_search(text):
+        search_context = await search_web(text)
 
 
-    try:
-        answer=await ask_gemini(
+    answer = await ask_groq(
         text,
         user.first_name,
-        search
-        )
-
-    except:
-
-        try:
-            answer=await ask_deepseek(
-            text,
-            user.first_name,
-            search
-            )
-
-        except:
-
-            answer=await ask_groq(
-            text,
-            user.first_name,
-            search
-            )
+        search_context
+    )
 
 
     await msg.reply_text(answer)
 
 
 
-async def ai_ban_reaction(update,context,name):
+async def ai_ban_reaction(
+    update,
+    context,
+    banned_user_name
+):
 
     await update.message.reply_text(
-    f"🚫 {name} بن شد 😅"
+        f"🚫 {banned_user_name} بن شد 😅"
+    )
+
+async def ai_kick_reaction(
+    update,
+    context,
+    kicked_user_name
+):
+
+    await update.message.reply_text(
+        f"👢 {kicked_user_name} کیک شد"
     )
 
 
-async def ai_kick_reaction(update,context,name):
+
+async def ai_warn_reaction(
+    update,
+    context,
+    warned_user_name,
+    count,
+    limit
+):
 
     await update.message.reply_text(
-    f"👢 {name} کیک شد"
+        f"⚠️ {warned_user_name} اخطار گرفت"
     )
-
-
-async def ai_warn_reaction(update,context,name,count,limit):
-
-    await update.message.reply_text(
-    f"⚠️ {name} اخطار گرفت"
-    )
-
-
-
-def get_fal():
-
-    return "🔮 فال امروز شما:\nامروز روز خوبی برای شروع کارهای جدید است ✨"
