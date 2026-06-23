@@ -1,6 +1,9 @@
 from telegram import ReplyKeyboardMarkup, Update
 from telegram.ext import (
-    Application, CommandHandler, MessageHandler, filters
+    Application,
+    CommandHandler,
+    MessageHandler,
+    filters
 )
 
 from modules.fun import (
@@ -11,39 +14,21 @@ from modules.fun import (
     get_riddle,
     dice,
     coin,
-    rps,
-    random_number
+    rps
 )
 
-from modules.admin import (
-    warn, clear_warning, warns, setwarnlimit,
-    ban, unban, kick, mute, unmute,
-    admin_text_handler, get_warn_limit
+from modules.ai import (
+    ai_handler,
+    smart_ai,
+    get_fal
 )
 
-from modules.locks import (
-    lock_link, unlock_link, lock_forward, unlock_forward,
-    lock_username, unlock_username, lock_photo, unlock_photo,
-    lock_video, unlock_video, lock_file, unlock_file,
-    lock_sticker, unlock_sticker, check_locks
-)
-
-from modules.settings import (
-    settings_handler,
-    settings_button_handler,
-    toggle_setting,
-    set_welcome,
-    set_rules_handler,
-    rules_handler,
-    welcome_new_member,
-    get
-)
-
-from modules.profile import (
-    get_user,
-    add_message,
-    profile_handler,
-    leaderboard_handler
+from modules.games import (
+    games_handler,
+    word_guess_start,
+    flag_guess_start,
+    duel_start,
+    cop_game_start
 )
 
 from modules.useful import (
@@ -54,153 +39,94 @@ from modules.useful import (
     convert_unit
 )
 
+from modules.profile import (
+    get_user,
+    profile_handler,
+    leaderboard_handler,
+    add_message
+)
+
 from modules.bank import (
     bank_profile,
-    deposit,
-    withdraw,
     daily,
-    transfer,
-    loan,
-    payloan,
     add_coins_from_message
 )
 
-from modules.ai import (
-    ai_handler,
-    smart_ai,
-    get_fal,
-    ai_ban_reaction,
-    ai_kick_reaction,
-    ai_warn_reaction
+from modules.admin import (
+    warn,
+    clear_warning,
+    warns,
+    ban,
+    unban,
+    kick,
+    mute,
+    unmute,
+    setwarnlimit,
+    admin_text_handler
 )
 
-from modules.games import (
-    word_guess_start,
-    flag_guess_start,
-    duel_start,
-    cop_game_start,
-    games_handler
+from modules.settings import (
+    settings_handler,
+    toggle_setting,
+    set_welcome,
+    rules_handler,
+    set_rules_handler,
+    welcome_new_member
+)
+
+from modules.locks import (
+    check_locks
 )
 
 from config import TOKEN, BOT_NAME
 
 
+
+OWNER_ID = 5147526780
+
+
+
 main_menu = [
-    ["🎮 سرگرمی", "🛠 کاربردی"],
-    ["🛡 مدیریت", "🔒 قفل‌ها"],
-    ["👤 پروفایل", "🏆 رتبه‌بندی"],
-    ["💰 سکه و بانک", "📖 فال حافظ"],
-    ["⚙️ تنظیمات", "🆘 پشتیبانی"]
+    ["🎮 سرگرمی","🛠 کاربردی"],
+    ["🛡 مدیریت","🔒 قفل‌ها"],
+    ["👤 پروفایل","🏆 رتبه‌بندی"],
+    ["💰 سکه و بانک","📖 فال حافظ"],
+    ["⚙️ تنظیمات","🆘 پشتیبانی"]
 ]
 
 
 fun_menu = [
-    ["😂 جوک", "🧠 فکت"],
-    ["💪 انگیزشی", "✨ متن"],
-    ["🎲 تاس", "🪙 شیر یا خط"],
-    ["🧩 چیستان", "✂️ سنگ کاغذ قیچی"],
-    ["🎯 حدس کلمه", "🏳️ حدس پرچم"],
-    ["⚔️ دوئل", "🚔 دزد و پلیس"],
+    ["😂 جوک","🧠 فکت"],
+    ["💪 انگیزشی","✨ متن"],
+    ["🎲 تاس","🪙 شیر یا خط"],
+    ["🧩 چیستان","✂️ سنگ کاغذ قیچی"],
+    ["🎯 حدس کلمه","🏳️ حدس پرچم"],
+    ["⚔️ دوئل","🚔 دزد و پلیس"],
     ["🔙 برگشت"]
 ]
 
 
 useful_menu = [
-    ["🌤 آب و هوا", "🌐 ترجمه"],
-    ["🔢 حساب‌گر", "📐 تبدیل واحد"],
-    ["🔙 برگشت"]
-]
-
-
-admin_menu = [
-    ["⚠️ اخطار", "🧹 پاک اخطار", "📋 اخطارها"],
-    ["🚫 بن", "✅ آنبن", "👢 کیک"],
-    ["🔇 میوت", "🔊 آنمیوت"],
-    ["⚙️ تنظیم حد اخطار"],
-    ["🔙 برگشت"]
-]
-
-
-lock_menu = [
-    ["قفل لینک", "حذف قفل لینک"],
-    ["قفل فوروارد", "حذف قفل فوروارد"],
-    ["قفل یوزرنیم", "حذف قفل یوزرنیم"],
-    ["قفل عکس", "حذف قفل عکس"],
-    ["قفل ویدیو", "حذف قفل ویدیو"],
-    ["قفل فایل", "حذف قفل فایل"],
-    ["قفل استیکر", "حذف قفل استیکر"],
+    ["🌤 آب و هوا","🌐 ترجمه"],
+    ["🔢 حساب‌گر","📐 تبدیل واحد"],
     ["🔙 برگشت"]
 ]
 
 
 bank_menu = [
-    ["👛 کیف پول", "🎁 جایزه روزانه"],
-    ["🏦 واریز", "💸 برداشت"],
-    ["🤝 انتقال سکه", "📛 وام"],
+    ["👛 کیف پول","🎁 جایزه روزانه"],
     ["🔙 برگشت"]
 ]
-SETTINGS_BUTTONS = [
-    "ضداسپم",
-    "فیلتر لینک",
-    "فیلتر منشن",
-    "خوش‌آمدگویی",
-    "✏️ تغییر پیام خوش‌آمد",
-    "📜 قوانین گروه"
-]
 
 
-ADMIN_COMMANDS = {
-    "اخطار": warn,
-    "پاک اخطار": clear_warning,
-    "اخطارها": warns,
-    "بن": ban,
-    "آنبن": unban,
-    "کیک": kick,
-    "میوت": mute,
-    "آنمیوت": unmute,
-}
 
+def kb(menu):
 
-def main_kb():
     return ReplyKeyboardMarkup(
-        main_menu,
+        menu,
         resize_keyboard=True
     )
 
-
-def fun_kb():
-    return ReplyKeyboardMarkup(
-        fun_menu,
-        resize_keyboard=True
-    )
-
-
-def useful_kb():
-    return ReplyKeyboardMarkup(
-        useful_menu,
-        resize_keyboard=True
-    )
-
-
-def admin_kb():
-    return ReplyKeyboardMarkup(
-        admin_menu,
-        resize_keyboard=True
-    )
-
-
-def lock_kb():
-    return ReplyKeyboardMarkup(
-        lock_menu,
-        resize_keyboard=True
-    )
-
-
-def bank_kb():
-    return ReplyKeyboardMarkup(
-        bank_menu,
-        resize_keyboard=True
-    )
 
 
 def clean(text):
@@ -216,8 +142,6 @@ def clean(text):
         "✨","🎲","🪙",
         "🧩","✂️","🌤",
         "🌐","🔢","📐",
-        "⚠️","🚫","✅",
-        "👢","🔇","🔊",
         "🔙"
     ]
 
@@ -228,67 +152,45 @@ def clean(text):
 
 
 
-async def start(update, context):
+async def start(update,context):
 
     user = update.effective_user
 
     get_user(user)
 
     await update.message.reply_text(
-        f"{BOT_NAME}\n\n"
-        f"👋 خوش اومدی {user.first_name}",
-        reply_markup=main_kb()
+        f"{BOT_NAME}\n\n👋 خوش اومدی {user.first_name}",
+        reply_markup=kb(main_menu)
     )
+    async def menu_handler(update, context):
 
+    if not update.message or not update.message.text:
+        return
 
-
-async def menu_handler(update, context):
 
     text = update.message.text.strip()
 
     c = clean(text)
 
 
-    if c in ADMIN_COMMANDS:
-
-        await ADMIN_COMMANDS[c](
-            update,
-            context
-        )
-
-        return
-
-
-
-    if c == "تنظیمات":
-
-        await settings_handler(
-            update,
-            context
-        )
-
-        return
-
-
-
     if c == "سرگرمی":
 
         await update.message.reply_text(
             "🎮 بخش سرگرمی:",
-            reply_markup=fun_kb()
+            reply_markup=kb(fun_menu)
         )
-
         return
+
 
 
     if c == "کاربردی":
 
         await update.message.reply_text(
             "🛠 بخش کاربردی:",
-            reply_markup=useful_kb()
+            reply_markup=kb(useful_menu)
         )
-
         return
+
 
 
     if c == "فال حافظ":
@@ -297,8 +199,8 @@ async def menu_handler(update, context):
             await get_fal(smart_ai),
             parse_mode="HTML"
         )
-
         return
+
 
 
     if c == "جوک":
@@ -306,8 +208,8 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             await get_joke(smart_ai)
         )
-
         return
+
 
 
     if c == "فکت":
@@ -315,8 +217,8 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             await get_fact(smart_ai)
         )
-
         return
+
 
 
     if c == "انگیزشی":
@@ -324,8 +226,8 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             await get_motive(smart_ai)
         )
-
         return
+
 
 
     if c == "متن":
@@ -333,8 +235,8 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             await get_text(smart_ai)
         )
-
         return
+
 
 
     if c == "چیستان":
@@ -343,8 +245,8 @@ async def menu_handler(update, context):
             await get_riddle(smart_ai),
             parse_mode="HTML"
         )
-
         return
+
 
 
     if c == "تاس":
@@ -352,8 +254,8 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             dice()
         )
-
         return
+
 
 
     if c == "شیر یا خط":
@@ -361,8 +263,8 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             coin()
         )
-
         return
+
 
 
     if c == "سنگ کاغذ قیچی":
@@ -370,8 +272,8 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             "✂️ بنویس: سنگ، کاغذ یا قیچی"
         )
-
         return
+
 
 
     if c in [
@@ -383,8 +285,8 @@ async def menu_handler(update, context):
         await update.message.reply_text(
             rps(c)
         )
-
         return
+
 
 
     if c == "پروفایل":
@@ -393,8 +295,8 @@ async def menu_handler(update, context):
             update,
             context
         )
-
         return
+
 
 
     if c == "رتبه‌بندی":
@@ -403,18 +305,18 @@ async def menu_handler(update, context):
             update,
             context
         )
-
         return
+
 
 
     if c == "سکه و بانک":
 
         await update.message.reply_text(
-            "💰 بانک:",
-            reply_markup=bank_kb()
+            "💰 بخش بانک:",
+            reply_markup=kb(bank_menu)
         )
-
         return
+
 
 
     if c == "کیف پول":
@@ -423,8 +325,8 @@ async def menu_handler(update, context):
             update,
             context
         )
-
         return
+
 
 
     if c == "جایزه روزانه":
@@ -433,26 +335,8 @@ async def menu_handler(update, context):
             update,
             context
         )
-
         return
 
-
-    if c == "واریز":
-
-        await update.message.reply_text(
-            "🏦 مقدار را بفرست:\n/deposit 100"
-        )
-
-        return
-
-
-    if c == "برداشت":
-
-        await update.message.reply_text(
-            "💸 مقدار را بفرست:\n/withdraw 100"
-        )
-
-        return
 
 
     if c == "حدس کلمه":
@@ -461,8 +345,8 @@ async def menu_handler(update, context):
             update,
             context
         )
-
         return
+
 
 
     if c == "حدس پرچم":
@@ -471,8 +355,8 @@ async def menu_handler(update, context):
             update,
             context
         )
-
         return
+
 
 
     if c == "دوئل":
@@ -481,8 +365,6 @@ async def menu_handler(update, context):
             update,
             context
         )
-
-        return
         return
 
 
@@ -493,7 +375,6 @@ async def menu_handler(update, context):
             update,
             context
         )
-
         return
 
 
@@ -509,13 +390,8 @@ async def menu_handler(update, context):
             update,
             context
         )
-
         return
-
-
-
-    # اگر هیچ دکمه‌ای نبود
-    if update.effective_chat.type != "private":
+            if update.effective_chat.type != "private":
 
         add_message(
             update.effective_user
@@ -525,7 +401,11 @@ async def menu_handler(update, context):
             update.effective_user,
             1
         )
-        app = Application.builder().token(TOKEN).build()
+
+
+
+app = Application.builder().token(TOKEN).build()
+
 
 
 app.add_handler(
@@ -536,12 +416,14 @@ app.add_handler(
 )
 
 
+
 app.add_handler(
     CommandHandler(
         "profile",
         profile_handler
     )
 )
+
 
 
 app.add_handler(
@@ -552,12 +434,14 @@ app.add_handler(
 )
 
 
+
 app.add_handler(
     CommandHandler(
         "warn",
         warn
     )
 )
+
 
 
 app.add_handler(
@@ -568,12 +452,23 @@ app.add_handler(
 )
 
 
+
+app.add_handler(
+    CommandHandler(
+        "unban",
+        unban
+    )
+)
+
+
+
 app.add_handler(
     CommandHandler(
         "kick",
         kick
     )
 )
+
 
 
 app.add_handler(
@@ -584,12 +479,14 @@ app.add_handler(
 )
 
 
+
 app.add_handler(
     CommandHandler(
         "unmute",
         unmute
     )
 )
+
 
 
 app.add_handler(
@@ -600,6 +497,7 @@ app.add_handler(
 )
 
 
+
 app.add_handler(
     CommandHandler(
         "translate",
@@ -608,12 +506,14 @@ app.add_handler(
 )
 
 
+
 app.add_handler(
     CommandHandler(
         "calc",
         calculate
     )
 )
+
 
 
 app.add_handler(
@@ -625,7 +525,15 @@ app.add_handler(
 
 
 
-# پیام‌های بازی
+app.add_handler(
+    MessageHandler(
+        filters.StatusUpdate.NEW_CHAT_MEMBERS,
+        welcome_new_member
+    )
+)
+
+
+
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
@@ -636,7 +544,6 @@ app.add_handler(
 
 
 
-# منو
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
@@ -647,7 +554,6 @@ app.add_handler(
 
 
 
-# قفل‌ها
 app.add_handler(
     MessageHandler(
         filters.ALL & ~filters.COMMAND,
@@ -658,7 +564,6 @@ app.add_handler(
 
 
 
-# هوش مصنوعی
 app.add_handler(
     MessageHandler(
         filters.TEXT & ~filters.COMMAND,
@@ -672,6 +577,7 @@ app.add_handler(
 print(
     f"✅ {BOT_NAME} Started!"
 )
+
 
 
 app.run_polling()
