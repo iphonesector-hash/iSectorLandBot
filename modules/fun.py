@@ -1,117 +1,256 @@
 import random
 
-jokes = [
-    "😂 چرا کامپیوتر رفت دکتر؟ چون ویروس گرفته بود!",
-    "🤣 وای‌فای قطع شد، مودم رفت استراحت!",
-    "😄 برنامه‌نویس بدون باگ مثل چای بدون قنده!",
-    "😆 به برنامه‌نویس گفتن برو بازار نون بخر، اگه تخم‌مرغ داشت ۶ تا بگیر. رفت و ۶ تا نون آورد!",
-    "🤭 چرا پایتون از مار نمیترسه؟ چون خودشه!",
-    "😂 هکر عاشق شد، گفت: قلبم رو هک کردی!"
-]
 
-facts = [
-    "🧠 اختاپوس ۳ قلب دارد.",
-    "🌎 نور خورشید ۸ دقیقه طول می‌کشد به زمین برسد.",
-    "🐬 دلفین‌ها با اسم صدا می‌کنند همدیگه رو.",
-    "🍯 عسل هیچ‌وقت فاسد نمیشه. عسل ۳۰۰۰ ساله در مصر پیدا شده.",
-    "🦋 پروانه با پاهاش طعم حس می‌کنه.",
-    "🌙 ماه هر سال ۳.۸ سانتیمتر از زمین دور میشه.",
-    "🐘 فیل‌ها تنها حیواناتی هستن که نمیتونن بپرن.",
-    "🧊 آب گرم سریع‌تر از آب سرد یخ می‌زنه (پدیده مپمبا)."
-]
-
-motives = [
-    "💪 امروز می‌تونه شروع یه اتفاق خوب باشه.",
-    "🔥 موفقیت از قدم‌های کوچیک ساخته میشه.",
-    "✨ ادامه بده، نزدیک‌تر از چیزی هستی که فکر می‌کنی.",
-    "🌟 هر روز یه فرصت جدیده، ازش استفاده کن.",
-    "🚀 آدم‌های موفق تسلیم نمیشن، فقط راه دیگه‌ای پیدا می‌کنن.",
-    "💡 ایده‌های بزرگ از جاهای ساده شروع میشن.",
-    "🌈 بعد از هر طوفانی، یه رنگین‌کمونه."
-]
-
-texts = [
-    "✨ یه روز عالی منتظرته",
-    "🌻 انرژی خوب پخش کن",
-    "🔥 قوی‌تر از دیروزی",
-    "💫 تو از اون چیزی که فکر میکنی بیشتر می‌ارزی",
-    "🌙 حتی ماه هم گاهی پشت ابره، ولی همیشه برمیگرده"
-]
-
-riddles = [
-    ("🧠 چیستان:\n\nچی دندون داره ولی غذا نمیخوره؟", "شانه 😄"),
-    ("🧠 چیستان:\n\nچی هست که همه میبیننش ولی کسی نمیتونه لمسش کنه؟", "سایه 🌑"),
-    ("🧠 چیستان:\n\nچی هر چقدر بیشتر بکشیش، کوتاه‌تر میشه؟", "مداد ✏️"),
-    ("🧠 چیستان:\n\nچی هست که تا ندیش کار نمیکنه؟", "چشم 👁"),
-]
-
-_last_riddle = {}
+# ==========================
+# AI GENERATED FUN SYSTEM
+# ==========================
 
 
-def get_joke():
-    return random.choice(jokes)
+async def generate_fun(ai_func, kind):
+
+    prompts = {
+
+        "joke":
+        """
+یک جوک فارسی جدید بساز.
+کوتاه، خنده دار، خودمونی و با ایموجی.
+هیچ جوکی که قبلا گفتی تکرار نکن.
+""",
 
 
-def get_fact():
-    return random.choice(facts)
+        "fact":
+        """
+یک فکت جالب و واقعی فارسی بگو.
+کوتاه، عجیب و با ایموجی.
+تکراری نباشه.
+""",
 
 
-def get_motive():
-    return random.choice(motives)
+        "motive":
+        """
+یک جمله انگیزشی قوی و جدید فارسی بنویس.
+کوتاه و تاثیرگذار با ایموجی.
+""",
 
 
-def get_text():
-    return random.choice(texts)
+        "text":
+        """
+یک متن کوتاه زیبا و احساسی فارسی بنویس.
+با ایموجی.
+""",
+
+
+        "riddle":
+        """
+یک چیستان جدید فارسی بساز.
+اول سوال را بنویس.
+جواب را آخر داخل ||جواب: ...|| قرار بده.
+""",
+
+
+        "fal":
+        """
+یک فال حافظ حرفه‌ای بساز.
+
+فرمت:
+🔮 فال حافظ
+
+📜 شعر حافظ:
+(یک بیت یا غزل کوتاه)
+
+✨ تعبیر:
+(تفسیر کامل)
+
+🌱 پیام امروز:
+(نتیجه مثبت)
+
+واقعی و زیبا بنویس.
+"""
+    }
+
+
+    prompt = prompts.get(
+        kind,
+        "یک متن جذاب فارسی بساز"
+    )
+
+
+    try:
+
+        result = await ai_func(
+            prompt,
+            "کاربر",
+            ""
+        )
+
+        return result
+
+
+    except Exception:
+
+        return "🤖 فعلا ذهنم قفل کرد 😅"
+
+
+
+# ==========================
+# PUBLIC FUNCTIONS
+# ==========================
+
+
+async def get_joke(ai):
+
+    return await generate_fun(
+        ai,
+        "joke"
+    )
+
+
+
+async def get_fact(ai):
+
+    return await generate_fun(
+        ai,
+        "fact"
+    )
+
+
+
+async def get_motive(ai):
+
+    return await generate_fun(
+        ai,
+        "motive"
+    )
+
+
+
+async def get_text(ai):
+
+    return await generate_fun(
+        ai,
+        "text"
+    )
+
+
+
+async def get_riddle(ai):
+
+    return await generate_fun(
+        ai,
+        "riddle"
+    )
+
+
+
+async def get_fal(ai):
+
+    return await generate_fun(
+        ai,
+        "fal"
+    )
+
+
+
+# ==========================
+# OTHER GAMES
+# ==========================
 
 
 def dice():
-    n = random.randint(1, 6)
-    faces = {1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅"}
-    return f"🎲 تاس انداختی: {faces[n]} ({n})"
+
+    n = random.randint(1,6)
+
+    faces = {
+        1:"⚀",
+        2:"⚁",
+        3:"⚂",
+        4:"⚃",
+        5:"⚄",
+        6:"⚅"
+    }
+
+    return f"🎲 عدد تاس: {faces[n]} ({n})"
+
 
 
 def coin():
-    result = random.choice(["شیر 🦁", "خط ✍️"])
-    return f"🪙 نتیجه: {result}"
 
+    return (
+        "🪙 نتیجه: "
+        +
+        random.choice(
+            [
+                "شیر 🦁",
+                "خط ✍️"
+            ]
+        )
+    )
 
-def riddle():
-    q, a = random.choice(riddles)
-    return f"{q}\n\n||جواب: {a}||"
 
 
 def rps(choice):
-    """سنگ کاغذ قیچی"""
-    options = ["سنگ 🪨", "کاغذ 📄", "قیچی ✂️"]
-    bot_choice = random.choice(options)
 
-    wins = {
-        "سنگ": "قیچی",
-        "کاغذ": "سنگ",
-        "قیچی": "کاغذ"
+    options = [
+        "سنگ 🪨",
+        "کاغذ 📄",
+        "قیچی ✂️"
+    ]
+
+
+    bot = random.choice(options)
+
+
+    win = {
+        "سنگ":"قیچی",
+        "کاغذ":"سنگ",
+        "قیچی":"کاغذ"
     }
 
-    user_key = None
-    for k in wins:
-        if k in choice:
-            user_key = k
-            break
 
-    if not user_key:
-        return "❓ گزینه معتبر نیست. بنویس: سنگ، کاغذ یا قیچی"
+    user = None
 
-    bot_key = bot_choice.split()[0]
+    for x in win:
 
-    if user_key == bot_key:
-        result = "🤝 مساوی!"
-    elif wins[user_key] == bot_key:
-        result = "🎉 بردی!"
+        if x in choice:
+            user=x
+
+
+    if not user:
+        return "❌ بنویس: سنگ، کاغذ یا قیچی"
+
+
+
+    bot_key = bot.split()[0]
+
+
+    if user == bot_key:
+
+        result="🤝 مساوی شد"
+
+    elif win[user] == bot_key:
+
+        result="🎉 بردی"
+
     else:
-        result = "😅 باختی!"
 
-    return f"تو: {choice}\nمن: {bot_choice}\n\n{result}"
+        result="😅 باختی"
 
 
-def random_number(min_val=1, max_val=100):
-    n = random.randint(min_val, max_val)
-    return f"🔢 عدد تصادفی بین {min_val} تا {max_val}: <b>{n}</b>"
+    return f"""
+تو: {choice}
+من: {bot}
+
+{result}
+"""
+
+
+
+def random_number(
+    min_val=1,
+    max_val=100
+):
+
+    return (
+        f"🔢 عدد شانسی: "
+        f"{random.randint(min_val,max_val)}"
+    )
