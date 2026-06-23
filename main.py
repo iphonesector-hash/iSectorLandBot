@@ -4,47 +4,87 @@ from telegram.ext import (
 )
 
 from modules.fun import (
-    get_joke, get_fact, get_motive,
-    get_text, dice, coin, riddle, rps, random_number
+    get_joke,
+    get_fact,
+    get_motive,
+    get_text,
+    get_riddle,
+    dice,
+    coin,
+    rps,
+    random_number
 )
+
 from modules.admin import (
     warn, clear_warning, warns, setwarnlimit,
     ban, unban, kick, mute, unmute,
     admin_text_handler, get_warn_limit
 )
+
 from modules.locks import (
     lock_link, unlock_link, lock_forward, unlock_forward,
     lock_username, unlock_username, lock_photo, unlock_photo,
     lock_video, unlock_video, lock_file, unlock_file,
     lock_sticker, unlock_sticker, check_locks
 )
+
 from modules.settings import (
-    settings_handler, settings_button_handler,
-    toggle_setting, set_welcome, set_rules_handler,
-    rules_handler, welcome_new_member, get
+    settings_handler,
+    settings_button_handler,
+    toggle_setting,
+    set_welcome,
+    set_rules_handler,
+    rules_handler,
+    welcome_new_member,
+    get
 )
+
 from modules.profile import (
-    get_user, add_message, profile_handler, leaderboard_handler
+    get_user,
+    add_message,
+    profile_handler,
+    leaderboard_handler
 )
+
 from modules.useful import (
-    useful_handler, weather, translate, calculate, convert_unit
+    useful_handler,
+    weather,
+    translate,
+    calculate,
+    convert_unit
 )
+
 from modules.bank import (
-    bank_profile, deposit, withdraw, daily,
-    transfer, loan, payloan, add_coins_from_message
+    bank_profile,
+    deposit,
+    withdraw,
+    daily,
+    transfer,
+    loan,
+    payloan,
+    add_coins_from_message
 )
+
 from modules.ai import (
-    ai_handler, get_fal,
-    ai_ban_reaction, ai_kick_reaction, ai_warn_reaction
+    ai_handler,
+    smart_ai,
+    get_fal,
+    ai_ban_reaction,
+    ai_kick_reaction,
+    ai_warn_reaction
 )
+
 from modules.games import (
-    word_guess_start, flag_guess_start,
-    duel_start, cop_game_start, games_handler
+    word_guess_start,
+    flag_guess_start,
+    duel_start,
+    cop_game_start,
+    games_handler
 )
+
 from config import TOKEN, BOT_NAME
 
 
-# ─── منوها ─────────────────────────────────────────────
 main_menu = [
     ["🎮 سرگرمی", "🛠 کاربردی"],
     ["🛡 مدیریت", "🔒 قفل‌ها"],
@@ -52,6 +92,7 @@ main_menu = [
     ["💰 سکه و بانک", "📖 فال حافظ"],
     ["⚙️ تنظیمات", "🆘 پشتیبانی"]
 ]
+
 
 fun_menu = [
     ["😂 جوک", "🧠 فکت"],
@@ -63,11 +104,13 @@ fun_menu = [
     ["🔙 برگشت"]
 ]
 
+
 useful_menu = [
     ["🌤 آب و هوا", "🌐 ترجمه"],
     ["🔢 حساب‌گر", "📐 تبدیل واحد"],
     ["🔙 برگشت"]
 ]
+
 
 admin_menu = [
     ["⚠️ اخطار", "🧹 پاک اخطار", "📋 اخطارها"],
@@ -76,6 +119,7 @@ admin_menu = [
     ["⚙️ تنظیم حد اخطار"],
     ["🔙 برگشت"]
 ]
+
 
 lock_menu = [
     ["قفل لینک", "حذف قفل لینک"],
@@ -88,266 +132,560 @@ lock_menu = [
     ["🔙 برگشت"]
 ]
 
+
 bank_menu = [
     ["👛 کیف پول", "🎁 جایزه روزانه"],
     ["🏦 واریز", "💸 برداشت"],
     ["🤝 انتقال سکه", "📛 وام"],
     ["🔙 برگشت"]
+]SETTINGS_BUTTONS = [
+    "ضداسپم",
+    "فیلتر لینک",
+    "فیلتر منشن",
+    "خوش‌آمدگویی",
+    "✏️ تغییر پیام خوش‌آمد",
+    "📜 قوانین گروه"
 ]
 
-SETTINGS_BUTTONS = [
-    "ضداسپم", "فیلتر لینک", "فیلتر منشن", "خوش‌آمدگویی",
-    "✏️ تغییر پیام خوش‌آمد", "📜 قوانین گروه"
-]
 
 ADMIN_COMMANDS = {
-    "اخطار": warn, "پاک اخطار": clear_warning,
-    "اخطارها": warns, "بن": ban, "آنبن": unban,
-    "کیک": kick, "میوت": mute, "آنمیوت": unmute,
+    "اخطار": warn,
+    "پاک اخطار": clear_warning,
+    "اخطارها": warns,
+    "بن": ban,
+    "آنبن": unban,
+    "کیک": kick,
+    "میوت": mute,
+    "آنمیوت": unmute,
 }
 
-BANK_KEYWORDS = {"کیف پول", "جایزه روزانه", "واریز", "برداشت", "انتقال سکه", "وام"}
 
-
-def main_kb(): return ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
-def fun_kb(): return ReplyKeyboardMarkup(fun_menu, resize_keyboard=True)
-def useful_kb(): return ReplyKeyboardMarkup(useful_menu, resize_keyboard=True)
-def admin_kb(): return ReplyKeyboardMarkup(admin_menu, resize_keyboard=True)
-def lock_kb(): return ReplyKeyboardMarkup(lock_menu, resize_keyboard=True)
-def bank_kb(): return ReplyKeyboardMarkup(bank_menu, resize_keyboard=True)
-
-
-def clean(text):
-    if not text:
-        return ""
-    for e in ["🎮","🛠","🛡","🔒","👤","📜","⚙️","🆘","🏆","💰","📖",
-              "😂","🧠","💪","✨","🎲","🪙","🧩","✂️","🌤","🌐","🔢",
-              "📐","⚠️","🔙","🚫","✅","👢","🔇","🔊","📋","🧹","🟢",
-              "🔴","✏️","👛","🎁","🏦","💸","🤝","📛","🎯","🏳️","⚔️","🚔"]:
-        text = text.replace(e, "")
-    return text.strip()
-
-
-async def start(update: Update, context):
-    user = update.effective_user
-    get_user(user)
-    await update.message.reply_text(
-        f"{BOT_NAME}\n\n👋 خوش اومدی <b>{user.first_name}</b>!",
-        reply_markup=main_kb(), parse_mode="HTML"
+def main_kb():
+    return ReplyKeyboardMarkup(
+        main_menu,
+        resize_keyboard=True
     )
 
 
-async def calc_cmd(update, context):
-    if not context.args:
-        await update.message.reply_text("🔢 مثال: <code>/calc 25 * 4 + 10</code>", parse_mode="HTML")
-        return
-    await update.message.reply_text(calculate(" ".join(context.args)), parse_mode="HTML")
+def fun_kb():
+    return ReplyKeyboardMarkup(
+        fun_menu,
+        resize_keyboard=True
+    )
 
 
-async def convert_cmd(update, context):
-    if not context.args:
-        await update.message.reply_text("📐 مثال: <code>/convert 100 km به m</code>", parse_mode="HTML")
-        return
-    await update.message.reply_text(convert_unit(" ".join(context.args)), parse_mode="HTML")
+def useful_kb():
+    return ReplyKeyboardMarkup(
+        useful_menu,
+        resize_keyboard=True
+    )
 
 
-async def lock_handler(update, context):
+def admin_kb():
+    return ReplyKeyboardMarkup(
+        admin_menu,
+        resize_keyboard=True
+    )
+
+
+def lock_kb():
+    return ReplyKeyboardMarkup(
+        lock_menu,
+        resize_keyboard=True
+    )
+
+
+def bank_kb():
+    return ReplyKeyboardMarkup(
+        bank_menu,
+        resize_keyboard=True
+    )
+
+
+def clean(text):
+
+    if not text:
+        return ""
+
+    emojis = [
+        "🎮","🛠","🛡","🔒",
+        "👤","🏆","💰",
+        "📖","⚙️","🆘",
+        "😂","🧠","💪",
+        "✨","🎲","🪙",
+        "🧩","✂️","🌤",
+        "🌐","🔢","📐",
+        "⚠️","🚫","✅",
+        "👢","🔇","🔊",
+        "🔙"
+    ]
+
+    for e in emojis:
+        text = text.replace(e,"")
+
+    return text.strip()
+
+
+
+async def start(update, context):
+
+    user = update.effective_user
+
+    get_user(user)
+
+    await update.message.reply_text(
+        f"{BOT_NAME}\n\n"
+        f"👋 خوش اومدی {user.first_name}",
+        reply_markup=main_kb()
+    )
+
+
+
+async def menu_handler(update, context):
+
     text = update.message.text.strip()
-    cmds = {
-        "قفل لینک": lock_link, "حذف قفل لینک": unlock_link,
-        "قفل فوروارد": lock_forward, "حذف قفل فوروارد": unlock_forward,
-        "قفل یوزرنیم": lock_username, "حذف قفل یوزرنیم": unlock_username,
-        "قفل عکس": lock_photo, "حذف قفل عکس": unlock_photo,
-        "قفل ویدیو": lock_video, "حذف قفل ویدیو": unlock_video,
-        "قفل فایل": lock_file, "حذف قفل فایل": unlock_file,
-        "قفل استیکر": lock_sticker, "حذف قفل استیکر": unlock_sticker,
-    }
-    if text in cmds:
-        await cmds[text](update, context)
 
-
-async def menu_handler(update: Update, context):
-    text = update.message.text.strip()
     c = clean(text)
 
-    # مدیریت
+
     if c in ADMIN_COMMANDS:
-        context.user_data["handled"] = True
-        context.args = []
-        await ADMIN_COMMANDS[c](update, context)
-        return
 
-    if c == "تنظیم حد اخطار":
-        limit = get_warn_limit(update.effective_chat.id)
-        await update.message.reply_text(
-            f"⚙️ حد اخطار فعلی: <b>{limit}</b>\n\nبنویس: <code>اخطار حد [عدد]</code>",
-            parse_mode="HTML"
+        await ADMIN_COMMANDS[c](
+            update,
+            context
         )
+
         return
 
-    if text.startswith("اخطار حد"):
-        await admin_text_handler(update, context)
+
+
+    if c == "تنظیمات":
+
+        await settings_handler(
+            update,
+            context
+        )
+
         return
 
-    # تنظیمات
-    if any(btn in text for btn in SETTINGS_BUTTONS):
-        await settings_button_handler(update, context)
-        return
 
-    # منوی اصلی
-    if c in ["سرگرمی","کاربردی","مدیریت","قفل‌ها","پروفایل","رتبه‌بندی",
-              "سکه و بانک","کیف پول","جایزه روزانه","واریز","برداشت",
-              "انتقال سکه","وام","فال حافظ","تنظیمات","پشتیبانی","برگشت",
-              "حدس کلمه","حدس پرچم","دوئل","دزد و پلیس",
-              "جوک","فکت","انگیزشی","متن","تاس","شیر یا خط","چیستان",
-              "سنگ کاغذ قیچی","سنگ","کاغذ","قیچی",
-              "آب و هوا","ترجمه","حساب‌گر","تبدیل واحد"] or        text.startswith("اخطار حد") or any(btn in text for btn in SETTINGS_BUTTONS):
-        context.user_data["handled"] = True
 
     if c == "سرگرمی":
-        await update.message.reply_text("🎮 بخش سرگرمی:", reply_markup=fun_kb())
-    elif c == "کاربردی":
-        await update.message.reply_text("🛠 بخش کاربردی:", reply_markup=useful_kb())
-    elif c == "مدیریت":
-        limit = get_warn_limit(update.effective_chat.id)
+
         await update.message.reply_text(
-            f"🛡 <b>پنل مدیریت</b>\n━━━━━━━━━━━━━━━━━━\n"
-            f"📌 روی پیام کاربر ریپلای کن، بعد دکمه رو بزن.\n"
-            f"⚙️ حد اخطار: <b>{limit}</b>",
-            reply_markup=admin_kb(), parse_mode="HTML"
+            "🎮 بخش سرگرمی:",
+            reply_markup=fun_kb()
         )
-    elif c == "قفل‌ها":
-        await update.message.reply_text("🔒 مدیریت قفل‌ها:", reply_markup=lock_kb())
-    elif c == "پروفایل":
-        await profile_handler(update, context)
-    elif c == "رتبه‌بندی":
-        await leaderboard_handler(update, context)
-    elif c == "سکه و بانک":
+
+        return
+
+
+
+    if c == "کاربردی":
+
         await update.message.reply_text(
-            "💰 <b>سکه و بانک</b>\n━━━━━━━━━━━━━━━━━━",
-            reply_markup=bank_kb(), parse_mode="HTML"
+            "🛠 بخش کاربردی:",
+            reply_markup=useful_kb()
         )
-    elif c == "کیف پول":
-        await bank_profile(update, context)
-    elif c == "جایزه روزانه":
-        await daily(update, context)
-    elif c == "واریز":
-        await update.message.reply_text("🏦 مقدار رو بنویس:\n<code>/deposit 100</code>", parse_mode="HTML")
-    elif c == "برداشت":
-        await update.message.reply_text("💸 مقدار رو بنویس:\n<code>/withdraw 100</code>", parse_mode="HTML")
-    elif c == "انتقال سکه":
+
+        return
+
+
+
+    if c == "فال حافظ":
+
         await update.message.reply_text(
-            "🤝 روی پیام کاربر ریپلای کن:\n<code>/transfer 100</code>", parse_mode="HTML"
-        )
-    elif c == "وام":
-        await update.message.reply_text(
-            "📛 <b>وام</b>\nحداکثر: ۵۰۰ سکه | بهره: ۱۰٪\n<code>/loan 200</code>", parse_mode="HTML"
-        )
-    elif c == "فال حافظ":
-        await update.message.reply_text(get_fal(), parse_mode="HTML")
-    elif c == "تنظیمات":
-        await settings_handler(update, context)
-    elif c == "پشتیبانی":
-        await update.message.reply_text(
-            "🆘 <b>پشتیبانی SectorLand</b>\n\n👤 @sector_ad",
+            await get_fal(smart_ai),
             parse_mode="HTML"
         )
-    elif c == "برگشت":
-        await update.message.reply_text("🏠 منوی اصلی:", reply_markup=main_kb())
 
-    # بازی‌ها
-    elif c == "حدس کلمه": await word_guess_start(update, context)
-    elif c == "حدس پرچم": await flag_guess_start(update, context)
-    elif c == "دوئل": await duel_start(update, context)
-    elif c == "دزد و پلیس": await cop_game_start(update, context)
-
-    # سرگرمی
-    elif c == "جوک": await update.message.reply_text(get_joke())
-    elif c == "فکت": await update.message.reply_text(get_fact())
-    elif c == "انگیزشی": await update.message.reply_text(get_motive())
-    elif c == "متن": await update.message.reply_text(get_text())
-    elif c == "تاس": await update.message.reply_text(dice())
-    elif c == "شیر یا خط": await update.message.reply_text(coin())
-    elif c == "چیستان": await update.message.reply_text(riddle(), parse_mode="HTML")
-    elif c == "سنگ کاغذ قیچی": await update.message.reply_text("✂️ بنویس: سنگ، کاغذ یا قیچی")
-    elif c in ["سنگ", "کاغذ", "قیچی"]: await update.message.reply_text(rps(c))
-
-    # کاربردی
-    elif c in ["آب و هوا", "ترجمه", "حساب‌گر", "تبدیل واحد"]:
-        await useful_handler(update, context)
-
-    # XP و سکه
-    else:
-        if update.effective_chat.type != "private":
-            add_message(update.effective_user)
-            add_coins_from_message(update.effective_user, 1)
+        return
 
 
-# ─── راه‌اندازی ────────────────────────────────────────
-app = Application.builder().token(TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("profile", profile_handler))
-app.add_handler(CommandHandler("top", leaderboard_handler))
-app.add_handler(CommandHandler("rules", rules_handler))
-app.add_handler(CommandHandler("setrules", set_rules_handler))
-app.add_handler(CommandHandler("warn", warn))
-app.add_handler(CommandHandler("clearwarn", clear_warning))
-app.add_handler(CommandHandler("warns", warns))
-app.add_handler(CommandHandler("setwarnlimit", setwarnlimit))
-app.add_handler(CommandHandler("ban", ban))
-app.add_handler(CommandHandler("unban", unban))
-app.add_handler(CommandHandler("kick", kick))
-app.add_handler(CommandHandler("mute", mute))
-app.add_handler(CommandHandler("unmute", unmute))
-app.add_handler(CommandHandler("weather", weather))
-app.add_handler(CommandHandler("translate", translate))
-app.add_handler(CommandHandler("calc", calc_cmd))
-app.add_handler(CommandHandler("convert", convert_cmd))
-app.add_handler(CommandHandler("toggle", toggle_setting))
-app.add_handler(CommandHandler("setwelcome", set_welcome))
-app.add_handler(CommandHandler("deposit", deposit))
-app.add_handler(CommandHandler("withdraw", withdraw))
-app.add_handler(CommandHandler("daily", daily))
-app.add_handler(CommandHandler("transfer", transfer))
-app.add_handler(CommandHandler("loan", loan))
-app.add_handler(CommandHandler("payloan", payloan))
-app.add_handler(CommandHandler("duel", duel_start))
-app.add_handler(CommandHandler("wordguess", word_guess_start))
-app.add_handler(CommandHandler("flagguess", flag_guess_start))
-app.add_handler(CommandHandler("copgame", cop_game_start))
+    if c == "جوک":
 
+        await update.message.reply_text(
+            await get_joke(smart_ai)
+        )
+
+        return
+
+
+
+    if c == "فکت":
+
+        await update.message.reply_text(
+            await get_fact(smart_ai)
+        )
+
+        return
+
+
+
+    if c == "انگیزشی":
+
+        await update.message.reply_text(
+            await get_motive(smart_ai)
+        )
+
+        return
+
+
+
+    if c == "متن":
+
+        await update.message.reply_text(
+            await get_text(smart_ai)
+        )
+
+        return    if c == "چیستان":
+
+        await update.message.reply_text(
+            await get_riddle(smart_ai),
+            parse_mode="HTML"
+        )
+
+        return
+
+
+
+    if c == "تاس":
+
+        await update.message.reply_text(
+            dice()
+        )
+
+        return
+
+
+
+    if c == "شیر یا خط":
+
+        await update.message.reply_text(
+            coin()
+        )
+
+        return
+
+
+
+    if c == "سنگ کاغذ قیچی":
+
+        await update.message.reply_text(
+            "✂️ بنویس: سنگ، کاغذ یا قیچی"
+        )
+
+        return
+
+
+
+    if c in [
+        "سنگ",
+        "کاغذ",
+        "قیچی"
+    ]:
+
+        await update.message.reply_text(
+            rps(c)
+        )
+
+        return
+
+
+
+    if c == "پروفایل":
+
+        await profile_handler(
+            update,
+            context
+        )
+
+        return
+
+
+
+    if c == "رتبه‌بندی":
+
+        await leaderboard_handler(
+            update,
+            context
+        )
+
+        return
+
+
+
+    if c == "سکه و بانک":
+
+        await update.message.reply_text(
+            "💰 بانک:",
+            reply_markup=bank_kb()
+        )
+
+        return
+
+
+
+    if c == "کیف پول":
+
+        await bank_profile(
+            update,
+            context
+        )
+
+        return
+
+
+
+    if c == "جایزه روزانه":
+
+        await daily(
+            update,
+            context
+        )
+
+        return
+
+
+
+    if c == "واریز":
+
+        await update.message.reply_text(
+            "🏦 مقدار را بفرست:\n/deposit 100"
+        )
+
+        return
+
+
+
+    if c == "برداشت":
+
+        await update.message.reply_text(
+            "💸 مقدار را بفرست:\n/withdraw 100"
+        )
+
+        return
+
+
+
+    if c == "حدس کلمه":
+
+        await word_guess_start(
+            update,
+            context
+        )
+
+        return
+
+
+
+    if c == "حدس پرچم":
+
+        await flag_guess_start(
+            update,
+            context
+        )
+
+        return
+
+
+
+    if c == "دوئل":
+
+        await duel_start(
+            update,
+            context
+        )
+
+        return
+
+
+
+    if c == "دزد و پلیس":
+
+        await cop_game_start(
+            update,
+            context
+        )
+
+        return
+
+
+
+    if c in [
+        "آب و هوا",
+        "ترجمه",
+        "حساب‌گر",
+        "تبدیل واحد"
+    ]:
+
+        await useful_handler(
+            update,
+            context
+        )
+
+        return
+
+
+
+    # اگر هیچ دکمه‌ای نبود
+    if update.effective_chat.type != "private":
+
+        add_message(
+            update.effective_user
+        )
+
+        add_coins_from_message(
+            update.effective_user,
+            1
+        )app = Application.builder().token(TOKEN).build()
+
+
+app.add_handler(
+    CommandHandler(
+        "start",
+        start
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "profile",
+        profile_handler
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "top",
+        leaderboard_handler
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "warn",
+        warn
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "ban",
+        ban
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "kick",
+        kick
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "mute",
+        mute
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "unmute",
+        unmute
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "weather",
+        weather
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "translate",
+        translate
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "calc",
+        calculate
+    )
+)
+
+
+app.add_handler(
+    CommandHandler(
+        "convert",
+        convert_unit
+    )
+)
+
+
+
+# پیام‌های بازی
 app.add_handler(
     MessageHandler(
-        filters.Regex(
-            r"^(قفل لینک|حذف قفل لینک|قفل فوروارد|حذف قفل فوروارد|"
-            r"قفل یوزرنیم|حذف قفل یوزرنیم|قفل عکس|حذف قفل عکس|"
-            r"قفل ویدیو|حذف قفل ویدیو|قفل فایل|حذف قفل فایل|"
-            r"قفل استیکر|حذف قفل استیکر)$"
-        ),
-        lock_handler
-    ), group=0
-)
-app.add_handler(
-    MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member),
-    group=0
-)
-app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, games_handler),
+        filters.TEXT & ~filters.COMMAND,
+        games_handler
+    ),
     group=1
 )
+
+
+
+# منو
 app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, menu_handler),
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        menu_handler
+    ),
     group=2
 )
+
+
+
+# قفل‌ها
 app.add_handler(
-    MessageHandler(filters.ALL & ~filters.COMMAND, check_locks),
+    MessageHandler(
+        filters.ALL & ~filters.COMMAND,
+        check_locks
+    ),
     group=3
 )
+
+
+
+# هوش مصنوعی
 app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, ai_handler),
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        ai_handler
+    ),
     group=4
 )
 
-print(f"✅ {BOT_NAME} Started!")
+
+
+print(
+    f"✅ {BOT_NAME} Started!"
+)
+
+
 app.run_polling()
