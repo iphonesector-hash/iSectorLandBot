@@ -420,27 +420,26 @@ context
 
 
 
-async def ai_ban_reaction(update,context,name):
+async def ai_ban_reaction(update, context, name):
 
     await update.message.reply_text(
-    f"🚫 {name} بن شد 😅"
+        f"🚫 {name} بن شد 😅"
     )
 
 
-
-async def ai_kick_reaction(update,context,name):
+async def ai_kick_reaction(update, context, name):
 
     await update.message.reply_text(
-    f"👢 {name} کیک شد"
+        f"👢 {name} کیک شد"
     )
 
 
-
-async def ai_warn_reaction(update,context,name,count,limit):
+async def ai_warn_reaction(update, context, name, count, limit):
 
     await update.message.reply_text(
-    f"⚠️ {name} اخطار گرفت"
+        f"⚠️ {name} اخطار گرفت"
     )
-    
+
+
 def get_fal():
     return "🔮 فال امروز شما:\nامروز روز خوبی برای شروع کارهای جدید است ✨"
