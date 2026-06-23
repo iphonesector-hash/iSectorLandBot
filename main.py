@@ -281,7 +281,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "کاربردی":
 
         await update.message.reply_text(
@@ -290,7 +289,6 @@ async def menu_handler(update, context):
         )
 
         return
-
 
 
     if c == "فال حافظ":
@@ -303,7 +301,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "جوک":
 
         await update.message.reply_text(
@@ -311,7 +308,6 @@ async def menu_handler(update, context):
         )
 
         return
-
 
 
     if c == "فکت":
@@ -323,7 +319,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "انگیزشی":
 
         await update.message.reply_text(
@@ -333,7 +328,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "متن":
 
         await update.message.reply_text(
@@ -341,7 +335,9 @@ async def menu_handler(update, context):
         )
 
         return
-            if c == "چیستان":
+
+
+    if c == "چیستان":
 
         await update.message.reply_text(
             await get_riddle(smart_ai),
@@ -349,7 +345,6 @@ async def menu_handler(update, context):
         )
 
         return
-
 
 
     if c == "تاس":
@@ -361,7 +356,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "شیر یا خط":
 
         await update.message.reply_text(
@@ -371,7 +365,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "سنگ کاغذ قیچی":
 
         await update.message.reply_text(
@@ -379,7 +372,6 @@ async def menu_handler(update, context):
         )
 
         return
-
 
 
     if c in [
@@ -395,7 +387,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "پروفایل":
 
         await profile_handler(
@@ -404,7 +395,6 @@ async def menu_handler(update, context):
         )
 
         return
-
 
 
     if c == "رتبه‌بندی":
@@ -417,7 +407,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "سکه و بانک":
 
         await update.message.reply_text(
@@ -426,7 +415,6 @@ async def menu_handler(update, context):
         )
 
         return
-
 
 
     if c == "کیف پول":
@@ -439,7 +427,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "جایزه روزانه":
 
         await daily(
@@ -448,7 +435,6 @@ async def menu_handler(update, context):
         )
 
         return
-
 
 
     if c == "واریز":
@@ -460,7 +446,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "برداشت":
 
         await update.message.reply_text(
@@ -468,7 +453,6 @@ async def menu_handler(update, context):
         )
 
         return
-
 
 
     if c == "حدس کلمه":
@@ -481,7 +465,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "حدس پرچم":
 
         await flag_guess_start(
@@ -492,7 +475,6 @@ async def menu_handler(update, context):
         return
 
 
-
     if c == "دوئل":
 
         await duel_start(
@@ -500,6 +482,7 @@ async def menu_handler(update, context):
             context
         )
 
+        return
         return
 
 
