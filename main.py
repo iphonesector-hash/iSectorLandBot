@@ -138,7 +138,8 @@ bank_menu = [
     ["🏦 واریز", "💸 برداشت"],
     ["🤝 انتقال سکه", "📛 وام"],
     ["🔙 برگشت"]
-]SETTINGS_BUTTONS = [
+]
+SETTINGS_BUTTONS = [
     "ضداسپم",
     "فیلتر لینک",
     "فیلتر منشن",
@@ -339,7 +340,8 @@ async def menu_handler(update, context):
             await get_text(smart_ai)
         )
 
-        return    if c == "چیستان":
+        return
+            if c == "چیستان":
 
         await update.message.reply_text(
             await get_riddle(smart_ai),
@@ -539,7 +541,8 @@ async def menu_handler(update, context):
         add_coins_from_message(
             update.effective_user,
             1
-        )app = Application.builder().token(TOKEN).build()
+        )
+        app = Application.builder().token(TOKEN).build()
 
 
 app.add_handler(
