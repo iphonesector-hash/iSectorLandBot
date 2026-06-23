@@ -92,6 +92,7 @@ main_menu = [
     ["⚙️ تنظیمات", "🆘 پشتیبانی"]
 ]
 
+
 fun_menu = [
     ["😂 جوک", "🧠 فکت"],
     ["💪 انگیزشی", "✨ متن"],
@@ -102,11 +103,13 @@ fun_menu = [
     ["🔙 برگشت"]
 ]
 
+
 useful_menu = [
     ["🌤 آب و هوا", "🌐 ترجمه"],
     ["🔢 حساب‌گر", "📐 تبدیل واحد"],
     ["🔙 برگشت"]
 ]
+
 
 bank_menu = [
     ["👛 کیف پول", "🎁 جایزه روزانه"],
@@ -126,13 +129,13 @@ def clean(text):
         return ""
 
     emojis = [
-        "🎮", "🛠", "🛡", "🔒",
-        "👤", "🏆", "💰",
-        "📖", "⚙️", "🆘",
-        "😂", "🧠", "💪",
-        "✨", "🎲", "🪙",
-        "🧩", "✂️", "🌤",
-        "🌐", "🔢", "📐",
+        "🎮","🛠","🛡","🔒",
+        "👤","🏆","💰",
+        "📖","⚙️","🆘",
+        "😂","🧠","💪",
+        "✨","🎲","🪙",
+        "🧩","✂️","🌤",
+        "🌐","🔢","📐",
         "🔙"
     ]
 
@@ -144,7 +147,9 @@ def clean(text):
 
 async def start(update, context):
     user = update.effective_user
+
     get_user(user)
+
     await update.message.reply_text(
         f"{BOT_NAME}\n\n👋 خوش اومدی {user.first_name}",
         reply_markup=kb(main_menu)
@@ -152,23 +157,29 @@ async def start(update, context):
 
 
 async def menu_handler(update, context):
+
     if not update.message or not update.message.text:
         return
 
     text = update.message.text.strip()
     c = clean(text)
+
+
     if c == "برگشت":
         await update.message.reply_text(
             "🏠 منوی اصلی:",
             reply_markup=kb(main_menu)
         )
         return
+
+
     if c == "سرگرمی":
         await update.message.reply_text(
             "🎮 بخش سرگرمی:",
             reply_markup=kb(fun_menu)
         )
         return
+
 
     if c == "کاربردی":
         await update.message.reply_text(
@@ -177,6 +188,7 @@ async def menu_handler(update, context):
         )
         return
 
+
     if c == "فال حافظ":
         await update.message.reply_text(
             await get_fal(smart_ai),
@@ -184,11 +196,13 @@ async def menu_handler(update, context):
         )
         return
 
+
     if c == "جوک":
         await update.message.reply_text(
             await get_joke(smart_ai)
         )
         return
+
 
     if c == "فکت":
         await update.message.reply_text(
@@ -196,17 +210,20 @@ async def menu_handler(update, context):
         )
         return
 
+
     if c == "انگیزشی":
         await update.message.reply_text(
             await get_motive(smart_ai)
         )
         return
 
+
     if c == "متن":
         await update.message.reply_text(
             await get_text(smart_ai)
         )
         return
+
 
     if c == "چیستان":
         await update.message.reply_text(
@@ -215,17 +232,16 @@ async def menu_handler(update, context):
         )
         return
 
+
     if c == "تاس":
-        await update.message.reply_text(
-            dice()
-        )
+        await update.message.reply_text(dice())
         return
 
+
     if c == "شیر یا خط":
-        await update.message.reply_text(
-            coin()
-        )
+        await update.message.reply_text(coin())
         return
+
 
     if c == "سنگ کاغذ قیچی":
         await update.message.reply_text(
@@ -233,75 +249,91 @@ async def menu_handler(update, context):
         )
         return
 
-    if c in ["سنگ", "کاغذ", "قیچی"]:
+
+    if c in ["سنگ","کاغذ","قیچی"]:
         await update.message.reply_text(
             rps(c)
         )
         return
 
+
     if c == "پروفایل":
         await profile_handler(update, context)
         return
 
+
     if c == "رتبه‌بندی":
         await leaderboard_handler(update, context)
         return
-
-    if c == "سکه و بانک":
+            if c == "سکه و بانک":
         await update.message.reply_text(
             "💰 بخش بانک:",
             reply_markup=kb(bank_menu)
         )
         return
 
+
     if c == "کیف پول":
         await bank_profile(update, context)
         return
+
 
     if c == "جایزه روزانه":
         await daily(update, context)
         return
 
+
     if c == "حدس کلمه":
         await word_guess_start(update, context)
         return
+
 
     if c == "حدس پرچم":
         await flag_guess_start(update, context)
         return
 
+
     if c == "دوئل":
         await duel_start(update, context)
         return
+
 
     if c == "دزد و پلیس":
         await cop_game_start(update, context)
         return
 
+
     if c in ["آب و هوا", "ترجمه", "حساب‌گر", "تبدیل واحد"]:
         await useful_handler(update, context)
         return
+
 
     if update.effective_chat.type != "private":
         add_message(update.effective_user)
         add_coins_from_message(update.effective_user, 1)
 
 
+
 app = Application.builder().token(TOKEN).build()
+
+
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("profile", profile_handler))
 app.add_handler(CommandHandler("top", leaderboard_handler))
+
 app.add_handler(CommandHandler("warn", warn))
 app.add_handler(CommandHandler("ban", ban))
 app.add_handler(CommandHandler("unban", unban))
 app.add_handler(CommandHandler("kick", kick))
 app.add_handler(CommandHandler("mute", mute))
 app.add_handler(CommandHandler("unmute", unmute))
+
 app.add_handler(CommandHandler("weather", weather))
 app.add_handler(CommandHandler("translate", translate))
 app.add_handler(CommandHandler("calc", calculate))
 app.add_handler(CommandHandler("convert", convert_unit))
+
 
 app.add_handler(
     MessageHandler(
@@ -310,26 +342,50 @@ app.add_handler(
     )
 )
 
+
+# اول منوها
 app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, games_handler),
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        menu_handler
+    ),
     group=1
 )
 
+
+# بعد بازی‌ها
 app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, menu_handler),
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        games_handler
+    ),
     group=2
 )
 
-app.add_handler(
-    MessageHandler(filters.ALL & ~filters.COMMAND, check_locks),
-    group=3
-)
 
+# هوش مصنوعی آخر
 app.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, ai_handler),
+    MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        ai_handler
+    ),
     group=4
 )
 
+
+# قفل‌ها آخر از همه
+app.add_handler(
+    MessageHandler(
+        filters.ALL & ~filters.COMMAND,
+        check_locks
+    ),
+    group=5
+)
+
+
+
 print(f"✅ {BOT_NAME} Started!")
 
+
 app.run_polling()
+        
