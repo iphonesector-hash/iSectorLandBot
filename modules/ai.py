@@ -1,271 +1,185 @@
-
-
 import aiohttp
 import random
-from datetime import datetime
+
+
+# ================= KEYS =================
 
 GROQ_API_KEY = "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"
+
+OPENROUTER_API_KEY = "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"
+
 TAVILY_API_KEY = "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"
 
+
+# ================= URL =================
+
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+
 TAVILY_URL = "https://api.tavily.com/search"
 
-SYSTEM_PROMPT = """
-تو Sector AI هستی، دستیار باهوش و صمیمی گروه تلگرامی SectorLand.
 
-- فارسی روون و خودمونی صحبت کن
+
+SYSTEM_PROMPT = """
+تو Sector AI هستی، دستیار هوشمند SectorLand.
+
+- فارسی روان و خودمونی حرف بزن
 - ایموجی استفاده کن
-- جواب‌ها کوتاه و مفید باشن
-- دوستانه و شوخ‌طبع باش
+- جواب کوتاه و مفید بده
+- دوستانه و باحال باش
 """
 
 
+
 MENU_TEXTS = {
-    "🎮 سرگرمی", "🛠 کاربردی", "🛡 مدیریت", "🔒 قفل‌ها",
-    "👤 پروفایل", "🏆 رتبه‌بندی", "⚙️ تنظیمات",
-    "🆘 پشتیبانی", "📖 فال حافظ",
-    "😂 جوک", "🧠 فکت", "💪 انگیزشی",
-    "✨ متن", "🎲 تاس", "🪙 شیر یا خط",
-    "🧩 چیستان", "✂️ سنگ کاغذ قیچی",
-    "سنگ", "کاغذ", "قیچی",
-    "🌤 آب و هوا", "🌐 ترجمه",
-    "🔢 حساب‌گر", "📐 تبدیل واحد",
-    "⚠️ اخطار", "🚫 بن",
-    "✅ آنبن", "👢 کیک",
-    "🔇 میوت", "🔊 آنمیوت",
-    "👛 کیف پول", "🎁 جایزه روزانه",
-    "🏦 واریز", "💸 برداشت",
+"🎮 سرگرمی","🛠 کاربردی",
+"🛡 مدیریت","🔒 قفل‌ها",
+"👤 پروفایل","🏆 رتبه‌بندی",
+"⚙️ تنظیمات","🆘 پشتیبانی",
+"📖 فال حافظ",
+
+"😂 جوک","🧠 فکت",
+"💪 انگیزشی","✨ متن",
+"🎲 تاس","🪙 شیر یا خط",
+"🧩 چیستان","✂️ سنگ کاغذ قیچی",
+
+"سنگ","کاغذ","قیچی",
+
+"🌤 آب و هوا",
+"🌐 ترجمه",
+"🔢 حساب‌گر",
+"📐 تبدیل واحد",
+
+"⚠️ اخطار",
+"🚫 بن",
+"✅ آنبن",
+"👢 کیک",
+"🔇 میوت",
+"🔊 آنمیوت"
 }
 
 
-SEARCH_TRIGGERS = [
-    "قیمت", "طلا", "سکه",
-    "دلار", "ارز",
-    "هوا", "خبر",
-    "اخبار"
+
+SEARCH = [
+"قیمت","طلا","دلار",
+"ارز","خبر","اخبار",
+"هوا","آب و هوا"
 ]
 
 
-async def search_web(query):
+
+async def search_web(text):
 
     try:
-        payload = {
-            "api_key": TAVILY_API_KEY,
-            "query": query,
-            "search_depth": "basic",
-            "max_results": 3,
-            "include_answer": True
+
+        payload={
+        "api_key":TAVILY_API_KEY,
+        "query":text,
+        "max_results":3,
+        "include_answer":True
         }
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
+
+        async with aiohttp.ClientSession() as s:
+
+            async with s.post(
                 TAVILY_URL,
                 json=payload,
                 timeout=10
-            ) as resp:
+            ) as r:
 
-                data = await resp.json()
+                data=await r.json()
 
-                if data.get("answer"):
-                    return data["answer"]
-
-                return ""
+                return data.get(
+                    "answer",
+                    ""
+                )
 
     except Exception as e:
-        print("Tavily error:", e)
+        print("Tavily:",e)
         return ""
 
 
 
-async def ask_groq(
-    user_message,
-    user_name="",
-    search_context=""
+
+async def ask_openai_style(
+    url,
+    key,
+    model,
+    text,
+    name,
+    search=""
 ):
 
-    content = f"""
-نام کاربر: {user_name}
 
-{search_context}
+    payload={
+
+    "model":model,
+
+    "messages":[
+
+    {
+    "role":"system",
+    "content":SYSTEM_PROMPT
+    },
+
+    {
+    "role":"user",
+    "content":f"""
+نام:
+{name}
+
+اطلاعات:
+{search}
 
 پیام:
-{user_message}
+{text}
 """
-
-
-    payload = {
-        "model": "llama-3.3-70b-versatile",
-        "messages": [
-            {
-                "role": "system",
-                "content": SYSTEM_PROMPT
-            },
-            {
-                "role": "user",
-                "content": content
-            }
-        ],
-        "temperature": 0.7,
-        "max_tokens": 400
     }
+
+    ],
+
+    "temperature":0.7,
+    "max_tokens":500
+
+    }
+
 
 
     try:
 
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as s:
 
-            async with session.post(
-                GROQ_URL,
+            async with s.post(
+                url,
                 json=payload,
                 headers={
-                    "Authorization":
-                    f"Bearer {GROQ_API_KEY}",
-                    "Content-Type":
-                    "application/json"
+                "Authorization":
+                f"Bearer {key}",
+                "Content-Type":
+                "application/json"
                 },
-                timeout=20
-            ) as resp:
+                timeout=25
+            ) as r:
 
 
-                data = await resp.json()
+                data=await r.json()
 
 
-                if resp.status != 200:
-                    print("Groq error:", data)
-                    return "🤖 مشکل موقت دارم، دوباره بفرست"
+                if r.status != 200:
+                    print("AI ERROR:",data)
+                    return None
 
 
                 return data["choices"][0]["message"]["content"]
 
 
     except Exception as e:
-        print("Groq exception:", e)
-        return "🤖 خطای اتصال"
 
-
-
-def needs_search(text):
-
-    return any(
-        x in text.lower()
-        for x in SEARCH_TRIGGERS
-    )
-
-
-
-HAFEZ = [
-    "✨ امروز بهت خوش میگذره، صبور باش.",
-    "🌱 مسیرت سختی داره ولی موفق میشی.",
-    "⭐ خبرهای خوب نزدیکه."
-]
-
-
-def get_fal():
-
-    return (
-        "📖 فال حافظ\n\n"
-        + random.choice(HAFEZ)
-    )
-
-
-
-async def ai_handler(update, context):
-
-    msg = update.message
-
-    if not msg or not msg.text:
-        return
-
-    text = msg.text.strip()
-
-
-    # دکمه‌های ربات جواب AI ندهند
-    if text in MENU_TEXTS or any(x in text for x in [
-        "🎮","🛠","🛡","🔒",
-        "👤","🏆","⚙️","🆘",
-        "📖","😂","🧠",
-        "💪","✨","🎲",
-        "🪙","🧩","✂️",
-        "🌤","🌐","🔢",
-        "📐","⚠️",
-        "🚫","✅","👢",
-        "🔇","🔊",
-        "👛","🎁",
-        "🏦","💸"
-    ]):
-        return
-
-
-    if text.startswith("/"):
-        return
-
-
-    user = update.effective_user
-
-
-    # گروه فقط با صدا زدن جواب بده
-    if update.effective_chat.type in ["group","supergroup"]:
-
-        bot_username = (context.bot.username or "").lower()
-
-        reply_bot = (
-            msg.reply_to_message
-            and msg.reply_to_message.from_user
-            and msg.reply_to_message.from_user.is_bot
-        )
-
-        mention = f"@{bot_username}" in text.lower()
-
-        if not reply_bot and not mention:
-            return
-
-
-    await context.bot.send_chat_action(
-        update.effective_chat.id,
-        "typing"
-    )
-
-
-    search_context = ""
-
-    if needs_search(text):
-        search_context = await search_web(text)
-
-
-    answer = await ask_groq(
-        text,
-        user.first_name,
-        search_context
-    )
-
-
-    await msg.reply_text(answer)
-
-
-
-async def ai_ban_reaction(
-    update,
-    context,
-    banned_user_name
-):
-
-    await update.message.reply_text(
-        f"🚫 {banned_user_name} بن شد 😅"
-    )
-
-async def ai_kick_reaction(
-    update,
-    context,
-    kicked_user_name
-):
-
-    await update.message.reply_text(
-        f"👢 {kicked_user_name} کیک شد"
-    )
-
-
-
-async def ai_warn_reaction(
+        print("AI EXCEPTION:",e)
+        return None
+        async def ai_warn_reaction(
     update,
     context,
     warned_user_name,
@@ -275,4 +189,169 @@ async def ai_warn_reaction(
 
     await update.message.reply_text(
         f"⚠️ {warned_user_name} اخطار گرفت"
+    )
+
+
+
+# ==========================
+# OpenRouter AI (Backup AI)
+# ==========================
+
+OPENROUTER_API_KEY = "اینجا_کلید_OpenRouter"
+
+OPENROUTER_URL = (
+    "https://openrouter.ai/api/v1/chat/completions"
+)
+
+
+
+async def ask_openrouter(
+    user_message,
+    user_name="",
+    search_context=""
+):
+
+    payload = {
+
+        "model": "meta-llama/llama-3.3-70b-instruct:free",
+
+        "messages": [
+
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            },
+
+            {
+                "role": "user",
+                "content": f"""
+نام:
+{user_name}
+
+اطلاعات:
+{search_context}
+
+پیام:
+{user_message}
+"""
+            }
+        ],
+
+        "temperature": 0.7,
+        "max_tokens": 500
+    }
+
+
+    try:
+
+        async with aiohttp.ClientSession() as session:
+
+            async with session.post(
+
+                OPENROUTER_URL,
+
+                json=payload,
+
+                headers={
+
+                    "Authorization":
+                    f"Bearer {OPENROUTER_API_KEY}",
+
+                    "Content-Type":
+                    "application/json"
+
+                },
+
+                timeout=30
+
+            ) as resp:
+
+
+                data = await resp.json()
+
+
+                if resp.status != 200:
+
+                    print(
+                        "OpenRouter Error:",
+                        data
+                    )
+
+                    return (
+                        "🤖 الان هوش مصنوعی "
+                        "در دسترس نیست"
+                    )
+
+
+                return (
+                    data["choices"][0]
+                    ["message"]["content"]
+                )
+
+
+    except Exception as e:
+
+        print(
+            "OpenRouter Exception:",
+            e
+        )
+
+        return "🤖 خطای اتصال"
+
+
+
+# جایگزین هندلر اصلی AI
+# اول Groq امتحان میشه
+# اگر خراب بود OpenRouter
+
+async def smart_ai(
+    text,
+    name,
+    search=""
+):
+
+    try:
+
+        result = await ask_groq(
+            text,
+            name,
+            search
+        )
+
+        if (
+            result and
+            "خطای اتصال" not in result and
+            "مشکل موقت" not in result
+        ):
+            return result
+
+
+    except Exception as e:
+
+        print(
+            "Groq failed:",
+            e
+        )
+
+
+    return await ask_openrouter(
+        text,
+        name,
+        search
+    )
+
+
+
+# ==========================
+# Test / Profile
+# ==========================
+
+
+def get_fal():
+
+    return (
+        "🔮 فال امروز شما:\n\n"
+        "✨ امروز زمان خوبی برای شروع "
+        "کارهای جدید است.\n"
+        "به خودت اعتماد کن 🌱"
     )
