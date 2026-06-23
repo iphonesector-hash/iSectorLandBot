@@ -4,7 +4,7 @@ import random
 
 # ================= KEYS =================
 
-GEMINI_API_KEY = "AQ.Ab8RN6LQhGJDV7hOBi2dh6BXksQxLxJc-drfZfiZdKYnna9_rKg"
+GEMINI_API_KEY = "AQ.Ab8RN6J3OjaX1IV22MIPy_fbIdyZpja68vqYpy_jm_qp0Hm7Kw"
 
 DEEPSEEK_API_KEY = "sk-0faf5666a01646cab6961f8fb5301568"
 
