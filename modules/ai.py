@@ -441,5 +441,6 @@ async def ai_warn_reaction(update,context,name,count,limit):
     await update.message.reply_text(
     f"⚠️ {name} اخطار گرفت"
     )
+    
 def get_fal():
     return "🔮 فال امروز شما:\nامروز روز خوبی برای شروع کارهای جدید است ✨"
