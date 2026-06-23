@@ -1,13 +1,20 @@
 import aiohttp
 import random
+from collections import defaultdict, deque
 
+
+# ================= KEYS =================
 
 GROQ_API_KEY = "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"
 
-OPENROUTER_API_KEY = "sk-or-v1-a25674f07c42e7931b5b8e46f034eba7bb2e912c1bc93fa3d2d821cc835b47f"
+OPENROUTER_API_KEY = "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"
 
 TAVILY_API_KEY = "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-UEx987lGw4"
 
+
+# ================= CONFIG =================
+
+OWNER_ID = 5147526780
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -16,36 +23,48 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 TAVILY_URL = "https://api.tavily.com/search"
 
 
+memory = defaultdict(lambda: deque(maxlen=5))
+
 
 SYSTEM_PROMPT = """
 تو Sector AI هستی، دستیار هوشمند SectorLand.
 
-فارسی روان و خودمونی حرف بزن.
-ایموجی استفاده کن.
-کوتاه و مفید جواب بده.
-دوستانه و باحال باش.
+قوانین:
+- فارسی روان و خودمونی
+- ایموجی استفاده کن
+- کوتاه ولی باهوش جواب بده
+- فقط صاحب ربات را "فرمانده پیمان" صدا کن
+- به بقیه کاربران عادی جواب بده
 """
 
 
 
 MENU_TEXTS = {
-"🎮 سرگرمی","🛠 کاربردی","🛡 مدیریت","🔒 قفل‌ها",
-"👤 پروفایل","🏆 رتبه‌بندی","⚙️ تنظیمات",
-"🆘 پشتیبانی","📖 فال حافظ",
-"😂 جوک","🧠 فکت","💪 انگیزشی",
-"✨ متن","🎲 تاس","🪙 شیر یا خط",
+"🎮 سرگرمی","🛠 کاربردی",
+"🛡 مدیریت","🔒 قفل‌ها",
+"👤 پروفایل","🏆 رتبه‌بندی",
+"⚙️ تنظیمات","🆘 پشتیبانی",
+"📖 فال حافظ",
+"😂 جوک","🧠 فکت",
+"💪 انگیزشی","✨ متن",
+"🎲 تاس","🪙 شیر یا خط",
 "🧩 چیستان","✂️ سنگ کاغذ قیچی",
 "سنگ","کاغذ","قیچی",
-"🌤 آب و هوا","🌐 ترجمه",
-"🔢 حساب‌گر","📐 تبدیل واحد",
-"⚠️ اخطار","🚫 بن",
-"✅ آنبن","👢 کیک",
-"🔇 میوت","🔊 آنمیوت"
+"🌤 آب و هوا",
+"🌐 ترجمه",
+"🔢 حساب‌گر",
+"📐 تبدیل واحد",
+"⚠️ اخطار",
+"🚫 بن",
+"✅ آنبن",
+"👢 کیک",
+"🔇 میوت",
+"🔊 آنمیوت"
 }
 
 
 
-SEARCH = [
+SEARCH_WORDS = [
 "قیمت","طلا","دلار",
 "ارز","خبر","اخبار",
 "هوا","آب و هوا"
@@ -59,7 +78,7 @@ async def search_web(text):
 
         async with aiohttp.ClientSession() as s:
 
-            r = await s.post(
+            async with s.post(
                 TAVILY_URL,
                 json={
                     "api_key":TAVILY_API_KEY,
@@ -68,30 +87,30 @@ async def search_web(text):
                     "include_answer":True
                 },
                 timeout=10
-            )
+            ) as r:
 
-            data = await r.json()
+                data = await r.json()
 
-            return data.get("answer","")
+                return data.get(
+                    "answer",
+                    ""
+                )
 
     except Exception as e:
-
-        print("TAVILY:",e)
+        print("SEARCH ERROR",e)
         return ""
 
 
 
 
-
-async def ask_ai(
-    url,
-    key,
-    model,
-    text,
-    name,
-    search=""
+async def call_ai(
+url,
+key,
+model,
+text,
+name,
+history=""
 ):
-
 
     payload={
 
@@ -107,38 +126,42 @@ async def ask_ai(
             {
             "role":"user",
             "content":f"""
+
 نام:
 {name}
 
-اطلاعات:
-{search}
+حافظه:
+{history}
 
 پیام:
 {text}
+
 """
             }
 
         ],
 
-        "temperature":0.7,
-        "max_tokens":500
+        "temperature":0.8,
+        "max_tokens":700
+
     }
 
 
+    async with aiohttp.ClientSession() as s:
 
-    try:
+        async with s.post(
+            url,
+            json=payload,
+            headers={
+                "Authorization":
+                f"Bearer {key}",
 
-        async with aiohttp.ClientSession() as s:
+                "Content-Type":
+                "application/json"
+            },
+            timeout=30
 
-            r = await s.post(
-                url,
-                json=payload,
-                headers={
-                    "Authorization":f"Bearer {key}",
-                    "Content-Type":"application/json"
-                },
-                timeout=30
-            )
+        ) as r:
 
 
             data = await r.json()
@@ -146,57 +169,105 @@ async def ask_ai(
 
             if r.status != 200:
 
-                print("AI ERROR:",data)
+                print(
+                    "AI ERROR",
+                    data
+                )
+
                 return None
 
 
-
-            return data["choices"][0]["message"]["content"]
-
-
-    except Exception as e:
-
-        print("AI EXCEPTION:",e)
-        return None
-
+            return (
+            data["choices"][0]
+            ["message"]["content"]
+            )
 
 
 
 
 async def ask_groq(
-    text,
-    name,
-    search=""
+text,
+name,
+history
 ):
 
-    return await ask_ai(
+    return await call_ai(
         GROQ_URL,
         GROQ_API_KEY,
         "llama-3.3-70b-versatile",
         text,
         name,
-        search
+        history
     )
-
 
 
 
 
 async def ask_openrouter(
-    text,
-    name,
-    search=""
+text,
+name,
+history
 ):
 
-    return await ask_ai(
+    return await call_ai(
         OPENROUTER_URL,
         OPENROUTER_API_KEY,
         "meta-llama/llama-3.3-70b-instruct:free",
         text,
         name,
-        search
+        history
     )
 
+
+
+
+async def smart_ai(
+text,
+name,
+history
+):
+
+    try:
+
+        result = await ask_groq(
+            text,
+            name,
+            history
+        )
+
+        if result:
+            return result
+
+
+    except Exception as e:
+
+        print(
+            "GROQ FAIL",
+            e
+        )
+
+
+    try:
+
+        result = await ask_openrouter(
+            text,
+            name,
+            history
+        )
+
+        if result:
+            return result
+
+
+    except Exception as e:
+
+        print(
+            "OPENROUTER FAIL",
+            e
+        )
+
+
+    return "🤖 الان جواب ندادم 😅"
 
 
 
@@ -204,14 +275,16 @@ def need_search(text):
 
     return any(
         x in text.lower()
-        for x in SEARCH
+        for x in SEARCH_WORDS
     )
 
 
 
 
-
-async def ai_handler(update,context):
+async def ai_handler(
+update,
+context
+):
 
 
     msg = update.message
@@ -221,9 +294,11 @@ async def ai_handler(update,context):
         return
 
 
-
     text = msg.text.strip()
 
+
+    if text in MENU_TEXTS:
+        return
 
 
     if text.startswith("/"):
@@ -231,8 +306,7 @@ async def ai_handler(update,context):
 
 
 
-    if text in MENU_TEXTS:
-        return
+    user = update.effective_user
 
 
 
@@ -240,6 +314,7 @@ async def ai_handler(update,context):
         "group",
         "supergroup"
     ]:
+
 
         bot = (
         context.bot.username or ""
@@ -251,20 +326,25 @@ async def ai_handler(update,context):
         )
 
 
-        reply = (
+        reply_bot = (
         msg.reply_to_message
         and msg.reply_to_message.from_user
         and msg.reply_to_message.from_user.is_bot
         )
 
 
-        if not mention and not reply:
+        if not mention and not reply_bot:
             return
 
 
 
 
-    user = update.effective_user
+    name = user.first_name
+
+
+    if user.id == OWNER_ID:
+
+        name = "فرمانده پیمان"
 
 
 
@@ -275,43 +355,40 @@ async def ai_handler(update,context):
 
 
 
-    search=""
-
+    history = "\n".join(
+        memory[user.id]
+    )
 
 
     if need_search(text):
 
-        search = await search_web(text)
+        info = await search_web(text)
+
+        text += "\n\nاطلاعات جدید:\n" + info
 
 
 
-    answer = await ask_groq(
+    answer = await smart_ai(
         text,
-        user.first_name,
-        search
+        name,
+        history
     )
 
 
 
-    if not answer:
+    memory[user.id].append(
+        "User: " + text
+    )
 
-        answer = await ask_openrouter(
-            text,
-            user.first_name,
-            search
-        )
-
-
-
-    if not answer:
-
-        answer="🤖 الان هوش مصنوعی در دسترس نیست"
+    memory[user.id].append(
+        "AI: " + answer
+    )
 
 
 
-    await msg.reply_text(answer)
-
-
+    await msg.reply_text(
+        answer
+    )
 
 
 
@@ -344,6 +421,6 @@ async def ai_warn_reaction(update,context,name,count,limit):
 def get_fal():
 
     return (
-    "🔮 فال امروز:\n"
-    "✨ روز خوبی برای شروع کارهای جدید است 🌱"
+        "🔮 فال امروز:\n\n"
+        "✨ روز خوبی برای شروع کارهای جدید است 🌱"
     )
