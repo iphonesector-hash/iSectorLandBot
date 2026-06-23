@@ -157,7 +157,12 @@ async def menu_handler(update, context):
 
     text = update.message.text.strip()
     c = clean(text)
-
+    if c == "برگشت":
+        await update.message.reply_text(
+            "🏠 منوی اصلی:",
+            reply_markup=kb(main_menu)
+        )
+        return
     if c == "سرگرمی":
         await update.message.reply_text(
             "🎮 بخش سرگرمی:",
