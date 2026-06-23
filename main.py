@@ -264,8 +264,10 @@ async def menu_handler(update, context):
 
     if c == "رتبه‌بندی":
         await leaderboard_handler(update, context)
-        return
-            if c == "سکه و بانک":
+        retur
+
+        
+    if c == "سکه و بانک":
         await update.message.reply_text(
             "💰 بخش بانک:",
             reply_markup=kb(bank_menu)
