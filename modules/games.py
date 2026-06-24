@@ -7,18 +7,27 @@ GAMES_FILE = "games.json"
 
 
 def load():
+    """بارگذاری داده‌های بازی‌ها"""
     if not os.path.exists(GAMES_FILE):
         return {}
-    with open(GAMES_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(GAMES_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return {}
 
 
 def save(data):
-    with open(GAMES_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+    """ذخیره داده‌های بازی‌ها"""
+    try:
+        with open(GAMES_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except:
+        pass
 
 
 def get_chat_games(chat_id):
+    """دریافت بازی‌های گروه"""
     data = load()
     cid = str(chat_id)
     if cid not in data:
@@ -28,6 +37,7 @@ def get_chat_games(chat_id):
 
 
 def set_chat_game(chat_id, key, value):
+    """تنظیم بازی گروه"""
     data = load()
     cid = str(chat_id)
     if cid not in data:
@@ -37,6 +47,7 @@ def set_chat_game(chat_id, key, value):
 
 
 def clear_chat_game(chat_id, key):
+    """پاک کردن بازی گروه"""
     data = load()
     cid = str(chat_id)
     if cid in data and key in data[cid]:
@@ -44,32 +55,36 @@ def clear_chat_game(chat_id, key):
         save(data)
 
 
-# ─── حدس کلمه ──────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════
+# حدس کلمه
+# ═══════════════════════════════════════════════════════════
+
 WORDS = [
-    ("کامپیوتر", "💻 یه وسیله الکترونیکی که باهاش کار میکنی"),
-    ("تلگرام", "📱 اپی که الان توش هستی"),
-    ("پیتزا", "🍕 یه غذای ایتالیایی خوشمزه"),
+    ("کامپیوتر", "💻 یک وسیله الکترونیکی"),
+    ("تلگرام", "📱 اپ پیامی شهیر"),
+    ("پیتزا", "🍕 غذای ایتالیایی"),
     ("ایران", "🌍 کشور ما"),
     ("دریا", "🌊 آب زیاد و بزرگ"),
     ("هواپیما", "✈️ وسیله نقلیه آسمانی"),
-    ("کتاب", "📚 چیزی که توش میخونی"),
-    ("آشپزخانه", "🍳 جایی که غذا درست میکنی"),
-    ("موبایل", "📱 وسیله ارتباطی همراه"),
-    ("برنامه‌نویس", "💻 کسی که کد مینویسه"),
+    ("کتاب", "📚 منبع دانش"),
+    ("آشپزخانه", "🍳 جایی که غذا درست میشود"),
+    ("موبایل", "📱 وسیله ارتباطی"),
+    ("برنامه‌نویس", "💻 کسی که کد مینویسد"),
     ("فوتبال", "⚽ ورزش پرطرفدار"),
-    ("موسیقی", "🎵 صداهای خوشایند"),
-    ("رستوران", "🍽️ جایی که غذا میخوری"),
-    ("بیمارستان", "🏥 جایی که مریض‌ها میرن"),
-    ("مدرسه", "🏫 جایی که درس میخونی"),
+    ("موسیقی", "🎵 هنر صدا"),
+    ("رستوران", "🍽️ جایی برای خوردن"),
+    ("بیمارستان", "🏥 جای درمان بیماری"),
+    ("مدرسه", "🏫 جایی برای یادگیری"),
 ]
 
 
 async def word_guess_start(update, context):
+    """شروع بازی حدس کلمه"""
     chat_id = update.effective_chat.id
     games = get_chat_games(chat_id)
 
     if games.get("word_guess"):
-        await update.message.reply_text("⚠️ یه بازی حدس کلمه در جریانه!")
+        await update.message.reply_text("⚠️ یک بازی حدس کلمه در جریان است!")
         return
 
     word, hint = random.choice(WORDS)
@@ -88,12 +103,13 @@ async def word_guess_start(update, context):
         f"💡 راهنما: {hint}\n"
         f"🔤 کلمه: {hidden}\n"
         f"📏 تعداد حروف: {len(word)}\n\n"
-        f"کلمه رو حدس بزن! ({5} شانس داری)",
+        f"کلمه رو حدس بزن! (5 شانس داری)",
         parse_mode="HTML"
     )
 
 
 async def word_guess_check(update, context, guess: str):
+    """چک کردن جواب حدس کلمه"""
     chat_id = update.effective_chat.id
     user = update.effective_user
     games = get_chat_games(chat_id)
@@ -108,13 +124,12 @@ async def word_guess_check(update, context, guess: str):
 
     if guess == word:
         clear_chat_game(chat_id, "word_guess")
-        # جایزه
         from modules.bank import add_coins_from_message
         for _ in range(20):
             add_coins_from_message(user)
         await update.message.reply_text(
             f"🎉 <b>آفرین {user.first_name}!</b>\n\n"
-            f"✅ کلمه درسته: <b>{word}</b>\n"
+            f"✅ کلمه درست: <b>{word}</b>\n"
             f"🪙 +20 سکه جایزه گرفتی!",
             parse_mode="HTML"
         )
@@ -132,10 +147,9 @@ async def word_guess_check(update, context, guess: str):
     remaining = game["max_tries"] - game["tries"]
     set_chat_game(chat_id, "word_guess", game)
 
-    # نشون دادن حروف درست
     revealed = ""
     for c in word:
-        if any(c in g for g in [guess]):
+        if c in guess:
             revealed += c + " "
         else:
             revealed += "_ "
@@ -148,7 +162,10 @@ async def word_guess_check(update, context, guess: str):
     return True
 
 
-# ─── حدس پرچم ──────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════
+# حدس پرچم
+# ═══════════════════════════════════════════════════════════
+
 FLAGS = [
     ("🇮🇷", "ایران"), ("🇺🇸", "آمریکا"), ("🇬🇧", "انگلیس"),
     ("🇩🇪", "آلمان"), ("🇫🇷", "فرانسه"), ("🇯🇵", "ژاپن"),
@@ -161,11 +178,12 @@ FLAGS = [
 
 
 async def flag_guess_start(update, context):
+    """شروع بازی حدس پرچم"""
     chat_id = update.effective_chat.id
     games = get_chat_games(chat_id)
 
     if games.get("flag_guess"):
-        await update.message.reply_text("⚠️ یه بازی حدس پرچم در جریانه!")
+        await update.message.reply_text("⚠️ یک بازی حدس پرچم در جریان است!")
         return
 
     flag, country = random.choice(FLAGS)
@@ -184,6 +202,7 @@ async def flag_guess_start(update, context):
 
 
 async def flag_guess_check(update, context, guess: str):
+    """چک کردن جواب حدس پرچم"""
     chat_id = update.effective_chat.id
     user = update.effective_user
     games = get_chat_games(chat_id)
@@ -220,14 +239,18 @@ async def flag_guess_check(update, context, guess: str):
     return True
 
 
-# ─── دوئل ───────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════
+# دوئل
+# ═══════════════════════════════════════════════════════════
+
 async def duel_start(update, context):
+    """شروع دوئل"""
     chat_id = update.effective_chat.id
     user = update.effective_user
     games = get_chat_games(chat_id)
 
     if not update.message.reply_to_message:
-        await update.message.reply_text("⚔️ روی پیام کاربر موردنظر ریپلای کن!")
+        await update.message.reply_text("⚔️ روی پیام کاربر دوئل رو دعوت کن!")
         return
 
     target = update.message.reply_to_message.from_user
@@ -236,7 +259,7 @@ async def duel_start(update, context):
         return
 
     if games.get("duel"):
-        await update.message.reply_text("⚠️ یه دوئل در جریانه!")
+        await update.message.reply_text("⚠️ یک دوئل در جریان است!")
         return
 
     bet = 20
@@ -251,12 +274,13 @@ async def duel_start(update, context):
     await update.message.reply_text(
         f"⚔️ <b>{user.first_name}</b> به <b>{target.first_name}</b> دوئل داد!\n\n"
         f"💰 شرط: {bet} سکه\n\n"
-        f"{target.first_name} بنویس <b>قبول</b> یا <b>رد</b>",
+        f"@{target.username or target.first_name} بنویس: <b>قبول</b> یا <b>رد</b>",
         parse_mode="HTML"
     )
 
 
 async def duel_response(update, context, response: str):
+    """پاسخ به دوئل"""
     chat_id = update.effective_chat.id
     user = update.effective_user
     games = get_chat_games(chat_id)
@@ -273,7 +297,6 @@ async def duel_response(update, context, response: str):
         return True
 
     if response == "قبول":
-        # تعیین برنده تصادفی
         winner_id = random.choice([game["challenger"], game["target"]])
         winner_name = game["challenger_name"] if winner_id == game["challenger"] else game["target_name"]
         loser_name = game["target_name"] if winner_id == game["challenger"] else game["challenger_name"]
@@ -281,37 +304,26 @@ async def duel_response(update, context, response: str):
 
         clear_chat_game(chat_id, "duel")
 
-        from modules.bank import add_coins_from_message, get_account, update_account
-        from telegram import User as TGUser
-
-        # انتقال سکه - ساده
-        data_file = "bank.json"
-        if os.path.exists(data_file):
-            with open(data_file, "r") as f:
-                bank_data = json.load(f)
-
-            bet = game["bet"]
-            w = str(winner_id)
-            l = str(loser_id)
-
-            if l in bank_data and bank_data[l].get("wallet", 0) >= bet:
-                bank_data[l]["wallet"] -= bet
-                if w not in bank_data:
-                    bank_data[w] = {"wallet": 0, "bank": 0, "loan": 0}
-                bank_data[w]["wallet"] = bank_data[w].get("wallet", 0) + bet
-
-                with open(data_file, "w") as f:
-                    json.dump(bank_data, f, ensure_ascii=False, indent=4)
-
-        rounds = ["🗡 ضربه اول!", "🛡 دفاع کرد!", "⚡ حمله نهایی!"]
-        battle = "\n".join(rounds)
+        from modules.bank import get_account, update_account
+        
+        winner_acc = get_account(type('obj', (object,), {'id': winner_id})())
+        loser_acc = get_account(type('obj', (object,), {'id': loser_id})())
+        
+        bet = game["bet"]
+        if loser_acc["wallet"] >= bet:
+            loser_acc["wallet"] -= bet
+            winner_acc["wallet"] += bet
+            update_account(loser_id, loser_acc)
+            update_account(winner_id, winner_acc)
 
         await update.message.reply_text(
             f"⚔️ <b>دوئل شروع شد!</b>\n\n"
-            f"{battle}\n\n"
+            f"🗡️ ضربه اول!\n"
+            f"🛡️ دفاع کرد!\n"
+            f"⚡ حمله نهایی!\n\n"
             f"🏆 <b>{winner_name}</b> برنده شد!\n"
             f"😔 {loser_name} باخت\n"
-            f"🪙 {game['bet']} سکه منتقل شد!",
+            f"🪙 {bet} سکه منتقل شد!",
             parse_mode="HTML"
         )
         return True
@@ -319,17 +331,21 @@ async def duel_response(update, context, response: str):
     return False
 
 
-# ─── دزد و پلیس ─────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════
+# دزد و پلیس
+# ═══════════════════════════════════════════════════════════
+
 COP_ROLES = ["🚔 پلیس", "🦹 دزد"]
 
 
 async def cop_game_start(update, context):
+    """شروع بازی دزد و پلیس"""
     chat_id = update.effective_chat.id
     user = update.effective_user
     games = get_chat_games(chat_id)
 
     if games.get("cop_game"):
-        await update.message.reply_text("⚠️ یه بازی دزد و پلیس در جریانه!")
+        await update.message.reply_text("⚠️ یک بازی دزد و پلیس در جریان است!")
         return
 
     role = random.choice(COP_ROLES)
@@ -348,6 +364,7 @@ async def cop_game_start(update, context):
 
 
 async def cop_join(update, context):
+    """پیوستن به بازی"""
     chat_id = update.effective_chat.id
     user = update.effective_user
     games = get_chat_games(chat_id)
@@ -371,6 +388,7 @@ async def cop_join(update, context):
 
 
 async def cop_game_begin(update, context):
+    """شروع بازی"""
     chat_id = update.effective_chat.id
     user = update.effective_user
     games = get_chat_games(chat_id)
@@ -399,56 +417,53 @@ async def cop_game_begin(update, context):
 
     result += f"🚔 پلیس‌ها: {len(cops)} نفر\n"
     result += f"🦹 دزدها: {len(thieves)} نفر\n\n"
-    result += "نقش‌ها توی پیوی بهتون گفته میشه!\n"
     result += "پلیس‌ها باید دزدها رو پیدا کنن 🔍"
 
     await update.message.reply_text(result, parse_mode="HTML")
-
-    # ارسال نقش به صورت خصوصی
-    for uid, role in players.items():
-        try:
-            await context.bot.send_message(
-                int(uid),
-                f"🎭 نقش تو: <b>{role}</b>\n\n"
-                f"{'🚔 وظیفه: دزدها رو پیدا کن!' if 'پلیس' in role else '🦹 وظیفه: از دست پلیس فرار کن!'}",
-                parse_mode="HTML"
-            )
-        except:
-            pass
 
     clear_chat_game(chat_id, "cop_game")
     return True
 
 
-# ─── هندلر اصلی بازی‌ها ─────────────────────────────────
+# ═══════════════════════════════════════════════════════════
+# هندلر اصلی بازی‌ها
+# ═══════════════════════════════════════════════════════════
+
 async def games_handler(update, context):
+    """هندلر اصلی بازی‌ها"""
+    if not update.message or not update.message.text:
+        return
+    
     text = update.message.text.strip()
     chat_id = update.effective_chat.id
     games = get_chat_games(chat_id)
 
-    # چک بازی‌های فعال
+    # بازی حدس کلمه
     if games.get("word_guess"):
         result = await word_guess_check(update, context, text)
         if result:
             return
 
+    # بازی حدس پرچم
     if games.get("flag_guess"):
         result = await flag_guess_check(update, context, text)
         if result:
             return
 
+    # بازی دوئل
     if games.get("duel") and text in ["قبول", "رد"]:
         result = await duel_response(update, context, text)
         if result:
             return
 
+    # بازی دزد و پلیس - پیوستن
     if games.get("cop_game") and text == "میام":
         result = await cop_join(update, context)
         if result:
             return
 
+    # بازی دزد و پلیس - شروع
     if games.get("cop_game") and text == "شروع دزد":
         result = await cop_game_begin(update, context)
         if result:
             return
-
