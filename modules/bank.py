@@ -2,22 +2,32 @@ import json
 import os
 from datetime import datetime, date
 
-FILE = "bank.json"
+
+BANK_FILE = "bank.json"
 
 
 def load():
-    if not os.path.exists(FILE):
+    """بارگذاری داده‌های بانک"""
+    if not os.path.exists(BANK_FILE):
         return {}
-    with open(FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open(BANK_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return {}
 
 
 def save(data):
-    with open(FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+    """ذخیره داده‌های بانک"""
+    try:
+        with open(BANK_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except:
+        pass
 
 
 def get_account(user):
+    """دریافت حساب کاربر"""
     data = load()
     uid = str(user.id)
     if uid not in data:
@@ -25,22 +35,25 @@ def get_account(user):
             "name": user.first_name,
             "wallet": 0,
             "bank": 0,
+            "investment": 0,
             "loan": 0,
             "last_daily": "",
-            "last_interest": ""
+            "last_interest": "",
+            "vip": False
         }
         save(data)
     return data[uid]
 
 
 def update_account(user_id, account):
+    """بروزرسانی حساب کاربر"""
     data = load()
     data[str(user_id)] = account
     save(data)
 
 
-# ─── واریز سکه از پیام ─────────────────────────────────
 def add_coins_from_message(user, amount=1):
+    """اضافه کردن سکه برای هر پیام"""
     data = load()
     uid = str(user.id)
     if uid not in data:
@@ -50,44 +63,56 @@ def add_coins_from_message(user, amount=1):
     save(data)
 
 
-# ─── پروفایل بانک ──────────────────────────────────────
 async def bank_profile(update, context):
+    """نمایش پروفایل بانکی"""
     user = update.effective_user
     acc = get_account(user)
 
-    total = acc["wallet"] + acc["bank"]
+    total = acc["wallet"] + acc["bank"] + acc["investment"]
     loan = acc.get("loan", 0)
+    vip = "✅ VIP" if acc.get("vip") else "❌ عادی"
 
     await update.message.reply_text(
         f"💰 <b>حساب بانکی {user.first_name}</b>\n"
-        f"━━━━━━━━━━━━━━━━━━\n"
+        f"{'━' * 30}\n"
         f"👛 کیف پول: <b>{acc['wallet']:,}</b> سکه\n"
         f"🏦 بانک: <b>{acc['bank']:,}</b> سکه\n"
+        f"📈 سرمایه‌گذاری: <b>{acc['investment']:,}</b> سکه\n"
         f"💎 دارایی کل: <b>{total:,}</b> سکه\n"
-        f"{'📛 وام بدهی: ' + str(loan) + ' سکه' if loan > 0 else '✅ بدون بدهی'}\n\n"
-        f"دستورات:\n"
-        f"<code>/deposit [مقدار]</code> — واریز به بانک\n"
-        f"<code>/withdraw [مقدار]</code> — برداشت از بانک\n"
-        f"<code>/transfer @یوزر [مقدار]</code> — انتقال سکه\n"
-        f"<code>/daily</code> — جایزه روزانه\n"
-        f"<code>/loan [مقدار]</code> — درخواست وام",
+        f"{'📛 بدهی: ' + str(loan) + ' سکه' if loan > 0 else '✅ بدون بدهی'}\n"
+        f"🌟 وضعیت: {vip}\n"
+        f"{'━' * 30}\n"
+        f"<b>دستورات:</b>\n"
+        f"<code>/deposit [عدد]</code> - واریز به بانک\n"
+        f"<code>/withdraw [عدد]</code> - برداشت از بانک\n"
+        f"<code>/daily</code> - جایزه روزانه (50 سکه)\n"
+        f"<code>/invest [عدد]</code> - سرمایه‌گذاری\n"
+        f"<code>/loan [عدد]</code> - درخواست وام",
         parse_mode="HTML"
     )
 
 
-# ─── واریز به بانک ──────────────────────────────────────
 async def deposit(update, context):
+    """واریز به بانک"""
     user = update.effective_user
     if not context.args or not context.args[0].isdigit():
-        await update.message.reply_text("مثال: <code>/deposit 100</code>", parse_mode="HTML")
+        await update.message.reply_text(
+            "💰 <b>واریز به بانک</b>\n"
+            "مثال: <code>/deposit 100</code>",
+            parse_mode="HTML"
+        )
         return
 
     amount = int(context.args[0])
+    if amount <= 0:
+        await update.message.reply_text("❌ مقدار باید بزرگ‌تر از صفر باشد.")
+        return
+
     acc = get_account(user)
 
     if acc["wallet"] < amount:
         await update.message.reply_text(
-            f"❌ سکه کافی نداری!\nکیف پول: {acc['wallet']:,} سکه"
+            f"❌ سکه کافی نداری!\n👛 موجودی: {acc['wallet']:,} سکه"
         )
         return
 
@@ -102,19 +127,27 @@ async def deposit(update, context):
     )
 
 
-# ─── برداشت از بانک ─────────────────────────────────────
 async def withdraw(update, context):
+    """برداشت از بانک"""
     user = update.effective_user
     if not context.args or not context.args[0].isdigit():
-        await update.message.reply_text("مثال: <code>/withdraw 100</code>", parse_mode="HTML")
+        await update.message.reply_text(
+            "💰 <b>برداشت از بانک</b>\n"
+            "مثال: <code>/withdraw 100</code>",
+            parse_mode="HTML"
+        )
         return
 
     amount = int(context.args[0])
+    if amount <= 0:
+        await update.message.reply_text("❌ مقدار باید بزرگ‌تر از صفر باشد.")
+        return
+
     acc = get_account(user)
 
     if acc["bank"] < amount:
         await update.message.reply_text(
-            f"❌ موجودی بانک کافی نیست!\nبانک: {acc['bank']:,} سکه"
+            f"❌ موجودی بانک کافی نیست!\n🏦 موجودی: {acc['bank']:,} سکه"
         )
         return
 
@@ -123,88 +156,92 @@ async def withdraw(update, context):
     update_account(user.id, acc)
 
     await update.message.reply_text(
-        f"✅ <b>{amount:,}</b> سکه از بانک برداشت شد.\n"
+        f"✅ <b>{amount:,}</b> سکه برداشت شد.\n"
         f"👛 کیف پول: {acc['wallet']:,} سکه",
         parse_mode="HTML"
     )
 
 
-# ─── جایزه روزانه ───────────────────────────────────────
 async def daily(update, context):
+    """جایزه روزانه"""
     user = update.effective_user
     acc = get_account(user)
     today = str(date.today())
 
     if acc.get("last_daily") == today:
         await update.message.reply_text(
-            "⏰ جایزه روزانه رو امروز گرفتی!\nفردا دوباره بیا 😊"
+            "⏰ جایزه روزانه رو امروز گرفتی!\n"
+            "فردا دوباره بیا 😊"
         )
         return
 
     reward = 50
-    acc["wallet"] += reward
+    vip_bonus = 25 if acc.get("vip") else 0
+    total_reward = reward + vip_bonus
+
+    acc["wallet"] += total_reward
     acc["last_daily"] = today
     update_account(user.id, acc)
 
     await update.message.reply_text(
         f"🎁 <b>جایزه روزانه!</b>\n\n"
-        f"✅ {reward} سکه به کیف پولت اضافه شد\n"
-        f"👛 موجودی: {acc['wallet']:,} سکه",
+        f"✅ {reward} سکه جایزه پایه\n"
+        f"{'💎 +' + str(vip_bonus) + ' سکه بونوس VIP' if vip_bonus > 0 else ''}\n"
+        f"💰 <b>جمع: {total_reward} سکه</b>\n"
+        f"👛 موجودی فعلی: {acc['wallet']:,} سکه",
         parse_mode="HTML"
     )
 
 
-# ─── انتقال سکه ─────────────────────────────────────────
-async def transfer(update, context):
+async def invest(update, context):
+    """سرمایه‌گذاری"""
     user = update.effective_user
-
-    if not update.message.reply_to_message:
+    if not context.args or not context.args[0].isdigit():
         await update.message.reply_text(
-            "⚠️ روی پیام کاربر موردنظر ریپلای کن و مقدار رو بنویس:\n"
-            "<code>/transfer 100</code>",
+            "📈 <b>سرمایه‌گذاری</b>\n\n"
+            "بازده ماهانه: 15٪\n"
+            "حداقل: 100 سکه\n\n"
+            "مثال: <code>/invest 200</code>",
             parse_mode="HTML"
         )
         return
 
-    if not context.args or not context.args[0].isdigit():
-        await update.message.reply_text("مثال: <code>/transfer 100</code>", parse_mode="HTML")
-        return
-
     amount = int(context.args[0])
-    target = update.message.reply_to_message.from_user
-
-    if target.id == user.id:
-        await update.message.reply_text("❌ نمیتونی به خودت سکه بفرستی!")
+    if amount < 100:
+        await update.message.reply_text("❌ حداقل سرمایه‌گذاری 100 سکه است.")
         return
 
-    sender = get_account(user)
-    if sender["wallet"] < amount:
+    acc = get_account(user)
+
+    if acc["wallet"] < amount:
         await update.message.reply_text(
-            f"❌ سکه کافی نداری!\nکیف پول: {sender['wallet']:,} سکه"
+            f"❌ سکه کافی نداری!\n👛 موجودی: {acc['wallet']:,} سکه"
         )
         return
 
-    receiver = get_account(target)
-    sender["wallet"] -= amount
-    receiver["wallet"] += amount
-    update_account(user.id, sender)
-    update_account(target.id, receiver)
+    acc["wallet"] -= amount
+    acc["investment"] += amount
+    update_account(user.id, acc)
+
+    expected_return = int(amount * 0.15)
 
     await update.message.reply_text(
-        f"✅ <b>{amount:,}</b> سکه به <b>{target.first_name}</b> منتقل شد!\n"
-        f"👛 موجودی شما: {sender['wallet']:,} سکه",
+        f"📈 <b>سرمایه‌گذاری موفق!</b>\n\n"
+        f"✅ مبلغ: <b>{amount:,}</b> سکه\n"
+        f"💰 بازده ماهانه: <b>~{expected_return:,}</b> سکه (15٪)\n"
+        f"📊 کل سرمایه: {acc['investment']:,} سکه",
         parse_mode="HTML"
     )
 
 
-# ─── وام ────────────────────────────────────────────────
 async def loan(update, context):
+    """درخواست وام"""
     user = update.effective_user
     acc = get_account(user)
 
     if acc.get("loan", 0) > 0:
         await update.message.reply_text(
-            f"❌ ابتدا وام قبلیت رو پس بده!\n"
+            f"❌ ابتدا وام قبلی رو پس بده!\n"
             f"📛 بدهی: {acc['loan']:,} سکه\n"
             f"<code>/payloan</code> برای پرداخت",
             parse_mode="HTML"
@@ -214,33 +251,37 @@ async def loan(update, context):
     if not context.args or not context.args[0].isdigit():
         await update.message.reply_text(
             "🏦 <b>سیستم وام</b>\n\n"
-            "حداکثر وام: ۵۰۰ سکه\n"
-            "بهره: ۱۰٪\n\n"
-            "مثال: <code>/loan 200</code>",
+            "حداکثر وام: 1000 سکه\n"
+            "بهره: 15٪\n\n"
+            "مثال: <code>/loan 500</code>",
             parse_mode="HTML"
         )
         return
 
     amount = int(context.args[0])
-    if amount > 500:
-        await update.message.reply_text("❌ حداکثر وام ۵۰۰ سکه است.")
+    if amount > 1000:
+        await update.message.reply_text("❌ حداکثر وام 1000 سکه است.")
         return
 
-    payback = int(amount * 1.1)
+    if amount < 50:
+        await update.message.reply_text("❌ حداقل وام 50 سکه است.")
+        return
+
+    payback = int(amount * 1.15)
     acc["wallet"] += amount
     acc["loan"] = payback
     update_account(user.id, acc)
 
     await update.message.reply_text(
         f"✅ وام <b>{amount:,}</b> سکه دریافت شد!\n"
-        f"📛 باید <b>{payback:,}</b> سکه پس بدی (۱۰٪ بهره)\n"
-        f"<code>/payloan</code> برای پرداخت وام",
+        f"📛 باید <b>{payback:,}</b> سکه پس بدی (15٪ بهره)\n"
+        f"<code>/payloan</code> برای پرداخت",
         parse_mode="HTML"
     )
 
 
-# ─── پرداخت وام ─────────────────────────────────────────
 async def payloan(update, context):
+    """پرداخت وام"""
     user = update.effective_user
     acc = get_account(user)
     loan_amount = acc.get("loan", 0)
@@ -266,4 +307,3 @@ async def payloan(update, context):
         f"👛 موجودی: {acc['wallet']:,} سکه",
         parse_mode="HTML"
     )
-
