@@ -5,9 +5,11 @@ from collections import defaultdict, deque
 
 # ================= KEYS =================
 
+OPENMODEL_API_KEY = "om-DcBRZP5GbdnxDApshaFpKtJsmrAikr4ik2HdrGXoEhQp"
+
 GROQ_API_KEY = "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"
 
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "sk-or-v1-a25674f07c42e7931b5b8e46f034eba7bb2e912c1bc93fa3d2d821cc835b47f"
 
 TAVILY_API_KEY = "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-UEx987lGw4"
 
@@ -15,6 +17,8 @@ TAVILY_API_KEY = "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-UEx987lGw4"
 # ================= CONFIG =================
 
 OWNER_ID = 5147526780
+
+OPENMODEL_URL = "https://openmodel.ai/api/v1/chat/completions"
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
@@ -36,7 +40,6 @@ SYSTEM_PROMPT = """
 - فقط صاحب ربات را "فرمانده پیمان" صدا کن
 - به بقیه کاربران عادی جواب بده
 """
-
 
 
 MENU_TEXTS = {
@@ -63,13 +66,11 @@ MENU_TEXTS = {
 }
 
 
-
 SEARCH_WORDS = [
 "قیمت","طلا","دلار",
 "ارز","خبر","اخبار",
 "هوا","آب و هوا"
 ]
-
 
 
 async def search_web(text):
@@ -99,7 +100,6 @@ async def search_web(text):
     except Exception as e:
         print("SEARCH ERROR",e)
         return ""
-
 
 
 
@@ -184,6 +184,26 @@ history=""
 
 
 
+async def ask_openmodel(
+text,
+name,
+history
+):
+
+    return await call_ai(
+        OPENMODEL_URL,
+        OPENMODEL_API_KEY,
+        "deepseek-v4-flash",
+        text,
+        name,
+        history
+    )
+
+
+
+
+
+
 
 async def ask_groq(
 text,
@@ -199,7 +219,6 @@ history
         name,
         history
     )
-
 
 
 
@@ -226,6 +245,26 @@ text,
 name,
 history
 ):
+
+    try:
+
+        result = await ask_openmodel(
+            text,
+            name,
+            history
+        )
+
+        if result:
+            return result
+
+
+    except Exception as e:
+
+        print(
+            "OPENMODEL FAIL",
+            e
+        )
+
 
     try:
 
@@ -268,6 +307,7 @@ history
 
 
     return "🤖 الان جواب ندادم 😅"
+
 
 
 
@@ -360,6 +400,7 @@ context
     )
 
 
+
     if need_search(text):
 
         info = await search_web(text)
@@ -389,6 +430,7 @@ context
     await msg.reply_text(
         answer
     )
+
 
 
 
