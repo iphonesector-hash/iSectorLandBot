@@ -231,8 +231,8 @@ async def menu_handler(update, context):
     if c == "پشتیبانی":
         await update.message.reply_text(
             "🆘 پشتیبانی سکتورلند\n\n"
-            "برای ارتباط مستقیم با مدیریت:\n\n"
-            "tg://user?id=7438214247"
+            "ارتباط با مدیریت:\n"
+            "@sector_ad"
         )
         return
 
@@ -284,7 +284,17 @@ async def menu_handler(update, context):
 
 
     if c == "فال حافظ":
-        await update.message.reply_text(await get_fal(smart_ai))
+        try:
+            result = await get_fal(smart_ai)
+            await update.message.reply_text(result)
+
+        except Exception:
+            await update.message.reply_text(
+                "📖 فال حافظ\n\n"
+                "غزل شما آماده نشد 🌹\n"
+                "دوباره امتحان کن."
+            )
+
         return
 
 
