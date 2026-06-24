@@ -2,22 +2,31 @@ import json
 import os
 from datetime import datetime
 
-FILE = "users.json"
+USERS_FILE = "users.json"
 
 
 def load():
-    if not os.path.exists(FILE):
+    """بارگذاری اطلاعات کاربران"""
+    if not os.path.exists(USERS_FILE):
         return {}
-    with open(FILE, "r") as f:
-        return json.load(f)
+    try:
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except:
+        return {}
 
 
 def save(data):
-    with open(FILE, "w") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+    """ذخیره اطلاعات کاربران"""
+    try:
+        with open(USERS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except:
+        pass
 
 
 def get_user(user):
+    """دریافت یا ایجاد کاربر"""
     data = load()
     uid = str(user.id)
     if uid not in data:
@@ -29,18 +38,19 @@ def get_user(user):
             "xp": 0,
             "messages": 0,
             "vip": False,
-            "join": str(datetime.now().strftime("%Y-%m-%d"))
+            "vip_expire": "",
+            "join": str(datetime.now().strftime("%Y-%m-%d")),
+            "achievements": []
         }
         save(data)
     else:
-        # آپدیت اسم در صورت تغییر
         data[uid]["name"] = user.first_name
         save(data)
     return data[uid]
 
 
 def add_message(user):
-    """هر بار که کاربر پیام بفرسته صدا زده میشه"""
+    """اضافه کردن پیام و XP"""
     data = load()
     uid = str(user.id)
 
@@ -51,53 +61,64 @@ def add_message(user):
     data[uid]["messages"] = data[uid].get("messages", 0) + 1
     data[uid]["xp"] = data[uid].get("xp", 0) + 1
 
-    # هر ۱۰۰ XP یه لول بالا
+    # هر 100 XP یک لول بالا
     xp_needed = data[uid]["level"] * 100
     if data[uid]["xp"] >= xp_needed:
         data[uid]["level"] += 1
         data[uid]["xp"] = 0
-        data[uid]["coins"] = data[uid].get("coins", 0) + 10
+        data[uid]["coins"] = data[uid].get("coins", 0) + 25
 
     save(data)
     return data[uid]
 
 
-def add_coin(user, amount):
-    data = load()
-    uid = str(user.id)
-    if uid not in data:
-        get_user(user)
-        data = load()
-    data[uid]["coins"] = data[uid].get("coins", 0) + amount
-    save(data)
-
-
 def get_rank_title(level):
-    if level >= 50:
+    """دریافت عنوان رتبه بر اساس لول"""
+    if level >= 100:
         return "👑 افسانه‌ای"
-    elif level >= 30:
+    elif level >= 50:
         return "💎 الماس"
-    elif level >= 20:
+    elif level >= 30:
         return "🏆 طلایی"
-    elif level >= 10:
+    elif level >= 20:
         return "🥈 نقره‌ای"
-    elif level >= 5:
+    elif level >= 10:
         return "🥉 برنزی"
+    elif level >= 5:
+        return "⭐ ستاره"
     else:
         return "🌱 تازه‌کار"
 
 
-def get_leaderboard(limit=10):
+def get_rank_color(level):
+    """رنگ بندی رتبه‌ها"""
+    if level >= 100:
+        return "👑"
+    elif level >= 50:
+        return "💎"
+    elif level >= 30:
+        return "🏆"
+    elif level >= 20:
+        return "🥈"
+    elif level >= 10:
+        return "🥉"
+    else:
+        return "⭐"
+
+
+def get_leaderboard(limit=15):
+    """دریافت برترین کاربران"""
     data = load()
     sorted_users = sorted(
         data.items(),
-        key=lambda x: (x[1].get("level", 1), x[1].get("messages", 0)),
+        key=lambda x: (x[1].get("level", 1), x[1].get("xp", 0), x[1].get("messages", 0)),
         reverse=True
     )
     return sorted_users[:limit]
 
 
 async def profile_handler(update, context):
+    """نمایش پروفایل کاربر"""
     user = update.effective_user
     info = get_user(user)
 
@@ -108,42 +129,62 @@ async def profile_handler(update, context):
     coins = info.get("coins", 0)
     vip = "✅ بله" if info.get("vip") else "❌ خیر"
     rank = get_rank_title(level)
+    rank_icon = get_rank_color(level)
     join = info.get("join", "نامشخص")
 
     # نوار پیشرفت XP
-    filled = int((xp / xp_needed) * 10)
-    bar = "█" * filled + "░" * (10 - filled)
+    filled = int((xp / xp_needed) * 15)
+    bar = "█" * filled + "░" * (15 - filled)
+
+    # محاسبه تا لول بعدی
+    progress_percent = int((xp / xp_needed) * 100)
 
     await update.message.reply_text(
         f"👤 <b>پروفایل {user.first_name}</b>\n"
-        f"{'─' * 25}\n"
-        f"🏅 رتبه: {rank}\n"
-        f"⭐ لول: {level}\n"
-        f"📊 XP: [{bar}] {xp}/{xp_needed}\n"
-        f"💬 پیام‌ها: {messages}\n"
-        f"🪙 سکه: {coins}\n"
-        f"💎 VIP: {vip}\n"
-        f"📅 تاریخ عضویت: {join}\n",
+        f"{'═' * 35}\n\n"
+        f"{rank_icon} <b>رتبه:</b> {rank}\n"
+        f"⭐ <b>لول:</b> {level}\n"
+        f"📊 <b>تجربه:</b> [{bar}] {progress_percent}%\n"
+        f"   └─ {xp}/{xp_needed} XP\n"
+        f"💬 <b>پیام‌ها:</b> {messages:,}\n"
+        f"🪙 <b>سکه‌ها:</b> {coins:,}\n"
+        f"💎 <b>VIP:</b> {vip}\n"
+        f"📅 <b>عضویت:</b> {join}\n"
+        f"{'═' * 35}",
         parse_mode="HTML"
     )
 
 
 async def leaderboard_handler(update, context):
-    top = get_leaderboard(10)
+    """نمایش رتبه‌بندی"""
+    top = get_leaderboard(15)
 
     if not top:
         await update.message.reply_text("هنوز کسی در لیست نیست.")
         return
 
     medals = ["🥇", "🥈", "🥉"]
-    text = "🏆 <b>برترین کاربران گروه</b>\n" + "─" * 25 + "\n"
+    text = (
+        "🏆 <b>برترین کاربران گروه</b>\n"
+        "═" * 40 + "\n\n"
+    )
 
     for i, (uid, info) in enumerate(top):
-        medal = medals[i] if i < 3 else f"{i+1}."
+        medal = medals[i] if i < 3 else f"{i+1}️⃣"
         name = info.get("name", "کاربر")
         level = info.get("level", 1)
         messages = info.get("messages", 0)
+        xp = info.get("xp", 0)
         rank = get_rank_title(level)
-        text += f"{medal} <b>{name}</b> | لول {level} | {rank} | {messages} پیام\n"
+        vip_badge = "💎" if info.get("vip") else ""
+
+        text += (
+            f"{medal} <b>{name}</b> {vip_badge}\n"
+            f"   ├─ لول: {level} | رتبه: {rank}\n"
+            f"   ├─ پیام: {messages:,}\n"
+            f"   └─ XP: {xp}\n\n"
+        )
+
+    text += "═" * 40 + "\n"
 
     await update.message.reply_text(text, parse_mode="HTML")
