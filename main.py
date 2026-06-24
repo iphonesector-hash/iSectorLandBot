@@ -178,9 +178,9 @@ async def menu_handler(update, context):
             reply_markup=kb(useful_menu)
         )
         return
-
         
-        if c == "مدیریت":
+
+    if c == "مدیریت":
         await update.message.reply_text(
             "🛡 پنل مدیریت:",
             reply_markup=kb([
