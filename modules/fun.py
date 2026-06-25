@@ -1,256 +1,114 @@
 import random
+from modules.ai import smart_ai
 
 
-# ==========================
-# AI GENERATED FUN SYSTEM
-# ==========================
-
-
-async def generate_fun(ai_func, kind):
-
+async def generate_fun(kind: str) -> str:
     prompts = {
-
-        "joke":
-        """
-یک جوک فارسی جدید بساز.
-کوتاه، خنده دار، خودمونی و با ایموجی.
-هیچ جوکی که قبلا گفتی تکرار نکن.
-""",
-
-
-        "fact":
-        """
-یک فکت جالب و واقعی فارسی بگو.
-کوتاه، عجیب و با ایموجی.
-تکراری نباشه.
-""",
-
-
-        "motive":
-        """
-یک جمله انگیزشی قوی و جدید فارسی بنویس.
-کوتاه و تاثیرگذار با ایموجی.
-""",
-
-
-        "text":
-        """
-یک متن کوتاه زیبا و احساسی فارسی بنویس.
-با ایموجی.
-""",
-
-
-        "riddle":
-        """
-یک چیستان جدید فارسی بساز.
-اول سوال را بنویس.
-جواب را آخر داخل ||جواب: ...|| قرار بده.
-""",
-
-
-        "fal":
-        """
-یک فال حافظ حرفه‌ای بساز.
-
-فرمت:
-🔮 فال حافظ
-
-📜 شعر حافظ:
-(یک بیت یا غزل کوتاه)
-
-✨ تعبیر:
-(تفسیر کامل)
-
-🌱 پیام امروز:
-(نتیجه مثبت)
-
-واقعی و زیبا بنویس.
-"""
+        "joke": (
+            "یک جوک فارسی کاملاً جدید و خنده‌دار بساز. "
+            "کوتاه، خودمونی و با ایموجی باشه. "
+            "حتماً جوک جدید و متفاوت باشه."
+        ),
+        "fact": (
+            "یک فکت جالب، عجیب و واقعی فارسی بگو. "
+            "کوتاه، با ایموجی و تکراری نباشه. "
+            "از اینترنت و دانش به‌روز استفاده کن."
+        ),
+        "motive": (
+            "یک جمله انگیزشی قوی، تازه و تاثیرگذار فارسی بنویس. "
+            "با ایموجی و از ته دل باشه."
+        ),
+        "text": (
+            "یک متن کوتاه زیبا، احساسی یا ادبی فارسی بنویس. "
+            "با ایموجی و شاعرانه باشه."
+        ),
+        "riddle": (
+            "یک چیستان جدید و جالب فارسی بساز.\n"
+            "دقیقاً این فرمت رو رعایت کن:\n"
+            "🧩 چیستان:\n"
+            "[سوال چیستان اینجا]\n\n"
+            "برای دیدن جواب روی دکمه زیر بزن 👇\n"
+            "||جواب: [جواب اینجا]||"
+        ),
+        "fal": (
+            "یک فال حافظ کامل و حرفه‌ای فارسی بساز.\n\n"
+            "دقیقاً این فرمت رو رعایت کن:\n\n"
+            "🔮 فال حافظ\n\n"
+            "📜 غزل:\n"
+            "[یک بیت یا دوبیت از اشعار واقعی حافظ]\n\n"
+            "📖 معنی شعر:\n"
+            "[معنی ساده و فارسی روان شعر]\n\n"
+            "✨ تفسیر و تعبیر:\n"
+            "[تفسیر کامل فال برای زندگی کاربر]\n\n"
+            "🌱 پیام امروز:\n"
+            "[یک پیام مثبت و امیدوارکننده]\n\n"
+            "واقعی، زیبا و الهام‌بخش بنویس."
+        ),
     }
 
-
-    prompt = prompts.get(
-        kind,
-        "یک متن جذاب فارسی بساز"
-    )
-
-
+    prompt = prompts.get(kind, "یک متن جذاب فارسی بساز")
     try:
-
-        result = await ai_func(
-            prompt,
-            "کاربر",
-            ""
-        )
-
+        result = await smart_ai(prompt, "کاربر", "")
         return result
-
-
     except Exception:
-
-        return "🤖 فعلا ذهنم قفل کرد 😅"
-
+        return "🤖 فعلاً ذهنم قفل کرد 😅 دوباره امتحان کن."
 
 
-# ==========================
-# PUBLIC FUNCTIONS
-# ==========================
+async def get_joke() -> str:
+    return await generate_fun("joke")
+
+async def get_fact() -> str:
+    return await generate_fun("fact")
+
+async def get_motive() -> str:
+    return await generate_fun("motive")
+
+async def get_text() -> str:
+    return await generate_fun("text")
+
+async def get_riddle() -> str:
+    return await generate_fun("riddle")
+
+async def get_fal() -> str:
+    return await generate_fun("fal")
 
 
-async def get_joke(ai):
-
-    return await generate_fun(
-        ai,
-        "joke"
-    )
-
-
-
-async def get_fact(ai):
-
-    return await generate_fun(
-        ai,
-        "fact"
-    )
-
-
-
-async def get_motive(ai):
-
-    return await generate_fun(
-        ai,
-        "motive"
-    )
-
-
-
-async def get_text(ai):
-
-    return await generate_fun(
-        ai,
-        "text"
-    )
-
-
-
-async def get_riddle(ai):
-
-    return await generate_fun(
-        ai,
-        "riddle"
-    )
-
-
-
-async def get_fal(ai):
-
-    return await generate_fun(
-        ai,
-        "fal"
-    )
-
-
-
-# ==========================
-# OTHER GAMES
-# ==========================
-
-
-def dice():
-
-    n = random.randint(1,6)
-
-    faces = {
-        1:"⚀",
-        2:"⚁",
-        3:"⚂",
-        4:"⚃",
-        5:"⚄",
-        6:"⚅"
-    }
-
+def dice() -> str:
+    n = random.randint(1, 6)
+    faces = {1: "⚀", 2: "⚁", 3: "⚂", 4: "⚃", 5: "⚄", 6: "⚅"}
     return f"🎲 عدد تاس: {faces[n]} ({n})"
 
 
-
-def coin():
-
-    return (
-        "🪙 نتیجه: "
-        +
-        random.choice(
-            [
-                "شیر 🦁",
-                "خط ✍️"
-            ]
-        )
-    )
+def coin() -> str:
+    result = random.choice(["شیر 🦁", "خط ✍️"])
+    return f"🪙 نتیجه: {result}"
 
 
+def rps(choice: str) -> str:
+    options = ["سنگ", "کاغذ", "قیچی"]
+    emojis = {"سنگ": "🪨", "کاغذ": "📄", "قیچی": "✂️"}
+    win_against = {"سنگ": "قیچی", "کاغذ": "سنگ", "قیچی": "کاغذ"}
 
-def rps(choice):
+    user_key = None
+    for o in options:
+        if o in choice:
+            user_key = o
+            break
 
-    options = [
-        "سنگ 🪨",
-        "کاغذ 📄",
-        "قیچی ✂️"
-    ]
-
-
-    bot = random.choice(options)
-
-
-    win = {
-        "سنگ":"قیچی",
-        "کاغذ":"سنگ",
-        "قیچی":"کاغذ"
-    }
-
-
-    user = None
-
-    for x in win:
-
-        if x in choice:
-            user=x
-
-
-    if not user:
+    if not user_key:
         return "❌ بنویس: سنگ، کاغذ یا قیچی"
 
+    bot_key = random.choice(options)
 
-
-    bot_key = bot.split()[0]
-
-
-    if user == bot_key:
-
-        result="🤝 مساوی شد"
-
-    elif win[user] == bot_key:
-
-        result="🎉 بردی"
-
+    if user_key == bot_key:
+        result = "🤝 مساوی شد!"
+    elif win_against[user_key] == bot_key:
+        result = "🎉 تو بردی!"
     else:
-
-        result="😅 باختی"
-
-
-    return f"""
-تو: {choice}
-من: {bot}
-
-{result}
-"""
-
-
-
-def random_number(
-    min_val=1,
-    max_val=100
-):
+        result = "😅 تو باختی!"
 
     return (
-        f"🔢 عدد شانسی: "
-        f"{random.randint(min_val,max_val)}"
+        f"تو: {user_key} {emojis[user_key]}\n"
+        f"من: {bot_key} {emojis[bot_key]}\n\n"
+        f"{result}"
     )
