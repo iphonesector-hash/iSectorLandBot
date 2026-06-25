@@ -6,7 +6,7 @@ from collections import defaultdict, deque
 
 OPENMODEL_API_KEY = "om-DcBRZP5GbdnxDApshaFpKtJsmrAikr4ik2HdrGXoEhQp"
 GROQ_API_KEY = "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"
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 TAVILY_API_KEY = "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-UEx987lGw4"
 
 
